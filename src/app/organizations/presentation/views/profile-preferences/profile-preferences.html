@@ -1,0 +1,78 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'organizations.profile.my-account' | translate, 'shell.profile' | translate]"
+    [title]="'shell.profile' | translate"
+    [subtitle]="'organizations.profile.subtitle' | translate">
+    <button type="button" class="btn btn-primary" (click)="save()" [disabled]="store.loading()">{{ 'organizations.profile.save' | translate }}</button>
+  </app-page-header>
+
+  @if (saved() && form.pristine) {
+    <div class="alert alert-info" role="status"><div><strong>{{ 'organizations.profile.saved' | translate }}</strong></div></div>
+  }
+
+  @if (store.currentProfile(); as profile) {
+    <div class="grid" [formGroup]="form">
+      <section class="card panel">
+        <h2>{{ 'organizations.profile.personal-data' | translate }}</h2>
+        <p class="small muted">{{ 'organizations.profile.personal-data-text' | translate }}</p>
+        <div class="identity">
+          <span class="avatar big">{{ iamStore.currentUser()?.initials }}</span>
+          <div>
+            <strong>{{ profile.firstName }} {{ profile.lastName }}</strong>
+            <p class="small muted">{{ 'roles.' + iamStore.currentUser()?.role | translate }} · {{ profile.site }}</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label class="field" [class.invalid]="isInvalid('firstName')">
+            <span>{{ 'organizations.profile.first-name' | translate }} *</span>
+            <input type="text" formControlName="firstName" autocomplete="given-name">
+          </label>
+          <label class="field" [class.invalid]="isInvalid('lastName')">
+            <span>{{ 'organizations.profile.last-name' | translate }} *</span>
+            <input type="text" formControlName="lastName" autocomplete="family-name">
+          </label>
+          <label class="field full">
+            <span>{{ 'organizations.profile.email' | translate }}</span>
+            <input type="email" [value]="profile.email" disabled>
+          </label>
+          <label class="field full" [class.invalid]="isInvalid('area')">
+            <span>{{ 'organizations.profile.area' | translate }} *</span>
+            <input type="text" formControlName="area">
+          </label>
+        </div>
+        <p class="small muted">{{ 'organizations.profile.email-note' | translate }}</p>
+      </section>
+
+      <section class="card panel">
+        <h2>{{ 'organizations.profile.notifications' | translate }}</h2>
+        <p class="small muted">{{ 'organizations.profile.notifications-text' | translate }}</p>
+        <label class="preference">
+          <span><strong>{{ 'organizations.profile.email-notifications' | translate }}</strong>
+            <span class="small muted">{{ 'organizations.profile.email-notifications-text' | translate }}</span></span>
+          <input type="checkbox" class="switch" formControlName="emailNotifications">
+        </label>
+        <label class="preference">
+          <span><strong>{{ 'organizations.profile.in-app' | translate }}</strong>
+            <span class="small muted">{{ 'organizations.profile.in-app-text' | translate }}</span></span>
+          <input type="checkbox" class="switch" formControlName="inAppNotifications">
+        </label>
+        <div class="preference">
+          <strong>{{ 'organizations.profile.language' | translate }}</strong>
+          <div class="language" role="group">
+            @for (language of ['en', 'es']; track language) {
+              <button type="button" [class.active]="form.controls.language.value === language" (click)="chooseLanguage(language)">
+                {{ language.toUpperCase() }}
+              </button>
+            }
+          </div>
+        </div>
+        <p class="small muted">{{ 'organizations.profile.language-text' | translate }}</p>
+      </section>
+    </div>
+
+    <div class="card security">
+      <span aria-hidden="true">🛡</span>
+      <p>{{ 'organizations.profile.security' | translate }}</p>
+    </div>
+  }
+</section>

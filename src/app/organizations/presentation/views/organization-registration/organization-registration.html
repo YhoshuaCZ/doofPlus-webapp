@@ -1,0 +1,133 @@
+<div class="registration">
+  <aside class="intro">
+    <h1>{{ 'organizations.registration.headline' | translate }}</h1>
+    <span class="rule"></span>
+    @for (item of ['qa', 'production', 'access', 'permissions']; track item) {
+      <div class="intro-item">
+        <p class="intro-label">{{ 'organizations.registration.intro.' + item + '-title' | translate }}</p>
+        <p>{{ 'organizations.registration.intro.' + item + '-text' | translate }}</p>
+      </div>
+    }
+    <nav class="intro-links">
+      <a [href]="landingUrl + 'privacy.html'">{{ 'shell.privacy' | translate }}</a>
+      <a [href]="landingUrl + 'terms.html'">{{ 'shell.terms' | translate }}</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="top">
+      <a routerLink="/sign-in"><img src="/doofplus-logo.png" alt="DoofPlus"></a>
+      <app-language-switcher/>
+    </header>
+
+    <ol class="stepper">
+      <li [class.current]="store.registrationStep() !== 'verification'"><span>1</span>{{ 'organizations.registration.step-organization' | translate }}</li>
+      <li [class.current]="store.registrationStep() !== 'verification'"><span>2</span>{{ 'organizations.registration.step-administrator' | translate }}</li>
+      <li [class.current]="store.registrationStep() === 'verification'"><span>3</span>{{ 'organizations.registration.step-verification' | translate }}</li>
+    </ol>
+
+    @if (store.registrationStep() === 'verification') {
+      <section class="verification">
+        <span class="mail" aria-hidden="true">✉</span>
+        <h2>{{ 'organizations.registration.verify-title' | translate }}</h2>
+        <p class="muted">{{ 'organizations.registration.verify-text' | translate: {email: administratorEmail()} }}</p>
+        <a class="btn btn-primary" routerLink="/sign-in/administration">{{ 'organizations.registration.go-sign-in' | translate }}</a>
+      </section>
+    } @else {
+      <p class="overline">{{ 'organizations.registration.overline' | translate }}</p>
+      <h2 class="title">{{ 'organizations.registration.title' | translate }}</h2>
+      <p class="muted lead">{{ 'organizations.registration.subtitle' | translate }}</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <p class="group">{{ 'organizations.registration.organization-details' | translate }}</p>
+        <label class="field" [class.invalid]="isInvalid('legalName')">
+          <span>{{ 'organizations.registration.legal-name' | translate }} *</span>
+          <input type="text" formControlName="legalName" autocomplete="organization">
+          @if (isInvalid('legalName')) { <small class="field-error">{{ 'organizations.registration.legal-name-error' | translate }}</small> }
+        </label>
+        <label class="field" [class.invalid]="isInvalid('ruc') || store.registrationStep() === 'ruc-registered'">
+          <span>RUC *</span>
+          <input type="text" inputmode="numeric" maxlength="11" formControlName="ruc" (input)="rucChanged()">
+          @if (isInvalid('ruc')) { <small class="field-error">▲ {{ 'organizations.registration.ruc-error' | translate }}</small> }
+          @if (store.registrationStep() === 'ruc-registered') { <small class="field-error">▲ {{ 'organizations.registration.ruc-registered' | translate }}</small> }
+        </label>
+        <label class="field">
+          <span>{{ 'organizations.registration.primary-plant' | translate }} *</span>
+          <select formControlName="facilityName">
+            @for (plant of plants; track plant) { <option [value]="plant">{{ plant }}</option> }
+          </select>
+        </label>
+
+        <p class="group">{{ 'organizations.registration.plan' | translate }}</p>
+        @if (selectedPlan(); as plan) {
+          <div class="plan">
+            <div>
+              <strong>{{ plan.name }} · {{ 'subscriptions.cycle.' + form.controls.billingCycle.value | translate }} ·
+                {{ (form.controls.billingCycle.value === 'annual' ? plan.annualPrice : plan.monthlyPrice) | currency: 'USD':'US$':'1.0-0' }}</strong>
+              <p class="small muted">
+                {{ (plan.userLimit ? 'organizations.registration.plan-limits' : 'organizations.registration.plan-unlimited') | translate: {devices: plan.iotDeviceLimit, users: plan.userLimit} }}
+              </p>
+            </div>
+            <button type="button" class="link" (click)="choosingPlan.set(!choosingPlan())">{{ 'organizations.registration.change-plan' | translate }}</button>
+          </div>
+        }
+        @if (choosingPlan()) {
+          <div class="plan-options">
+            @for (plan of subscriptionsStore.plans(); track plan.id) {
+              @for (cycle of ['monthly', 'annual']; track cycle) {
+                <button type="button" class="plan-option" (click)="choosePlan(plan.key, cycle)">
+                  <strong>{{ plan.name }}</strong>
+                  <span>{{ 'subscriptions.cycle.' + cycle | translate }} · {{ (cycle === 'annual' ? plan.annualPrice : plan.monthlyPrice) | currency: 'USD':'US$':'1.0-0' }}</span>
+                </button>
+              }
+            }
+          </div>
+        }
+
+        <p class="group">{{ 'organizations.registration.administrator' | translate }}</p>
+        <label class="field" [class.invalid]="isInvalid('administratorName')">
+          <span>{{ 'organizations.registration.administrator-name' | translate }} *</span>
+          <input type="text" formControlName="administratorName" autocomplete="name">
+          @if (isInvalid('administratorName')) { <small class="field-error">{{ 'organizations.registration.administrator-name-error' | translate }}</small> }
+        </label>
+        <label class="field" [class.invalid]="isInvalid('administratorEmail')">
+          <span>{{ 'organizations.registration.email' | translate }} *</span>
+          <input type="email" formControlName="administratorEmail" autocomplete="email">
+          @if (isInvalid('administratorEmail')) { <small class="field-error">{{ 'organizations.registration.email-error' | translate }}</small> }
+        </label>
+        <label class="field" [class.invalid]="isInvalid('password')">
+          <span>{{ 'iam.sign-in.password' | translate }} *</span>
+          <span class="password">
+            <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="new-password">
+            <button type="button" class="toggle" (click)="showPassword.set(!showPassword())"
+                    [attr.aria-label]="(showPassword() ? 'iam.sign-in.hide-password' : 'iam.sign-in.show-password') | translate">👁</button>
+          </span>
+          <small class="hint" [class.field-error]="isInvalid('password')">ⓘ {{ 'organizations.registration.password-rule' | translate }}</small>
+          <span class="strength" [attr.data-level]="passwordStrength()">
+            <i></i><i></i><i></i><i></i>
+            <em>{{ 'organizations.registration.strength.' + passwordStrength() | translate }}</em>
+          </span>
+        </label>
+
+        <p class="notice">✉ {{ 'organizations.registration.notice' | translate: {email: administratorEmail()} }}</p>
+
+        <label class="checkbox" [class.invalid]="isInvalid('accepted')">
+          <input type="checkbox" formControlName="accepted">
+          <span>
+            {{ 'organizations.registration.accept-1' | translate }}
+            <a [href]="landingUrl + 'terms.html'" target="_blank">{{ 'shell.terms' | translate }}</a>
+            {{ 'organizations.registration.accept-2' | translate }}
+            <a [href]="landingUrl + 'privacy.html'" target="_blank">{{ 'shell.privacy' | translate }}</a>.
+            {{ 'organizations.registration.accept-3' | translate }}
+          </span>
+        </label>
+
+        <div class="row">
+          <button type="submit" class="btn btn-primary submit" [disabled]="store.loading()">{{ 'organizations.registration.create' | translate }}</button>
+          <span class="muted">{{ 'organizations.registration.create-note' | translate }}</span>
+        </div>
+        <p class="small">* {{ 'organizations.registration.required' | translate }}</p>
+      </form>
+    }
+  </main>
+</div>

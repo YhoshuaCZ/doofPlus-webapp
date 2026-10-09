@@ -48,6 +48,18 @@ export class IamApi extends BaseApi {
     );
 
   /**
+   * Creates a user account with its password.
+   * @param user - The user to create.
+   * @param password - Initial password chosen by the user.
+   * @returns Stream with the created user.
+   * @remarks The fake API stores the password with the user; the DoofPlus Platform will hash it in a sign-up endpoint.
+   */
+  createUser = (user: User, password: string): Observable<User> =>
+    this.http.post<UserResource>(this.usersUrl, {...this.userAssembler.toResourceFromEntity(user), id: undefined, password}).pipe(
+      map(resource => this.userAssembler.toEntityFromResource(resource))
+    );
+
+  /**
    * Retrieves all users of the organization.
    * @returns Stream with the user collection.
    */

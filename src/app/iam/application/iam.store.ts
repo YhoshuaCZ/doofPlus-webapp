@@ -188,6 +188,25 @@ export class IamStore {
   };
 
   /**
+   * Creates the first administrator of a newly registered organization. The account stays invited
+   * until the administrator verifies the email and enrolls two-factor authentication.
+   * @param administrator - Organization and personal data of the administrator.
+   */
+  registerAdministrator = (administrator: {
+    organizationId: number; organizationName: string; plant: string; fullName: string; email: string; password: string;
+  }): void => {
+    const initials = administrator.fullName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('');
+    this.iamApi.createUser(new User({
+      id: 0, fullName: administrator.fullName, initials, email: administrator.email, role: 'administrator',
+      environment: 'administration', facility: 'All facilities', status: 'invited', organizationId: administrator.organizationId,
+      organizationName: administrator.organizationName, plant: administrator.plant, privilege: 'administrator'
+    }), administrator.password).subscribe({
+      next: user => this.usersSignal.update(users => [...users, user]),
+      error: err => this.errorSignal.set(this.formatError(err, 'Failed to create the administrator'))
+    });
+  };
+
+  /**
    * Checks whether an email already belongs to a user or an invitation of the organization.
    * @param email - Email to check.
    * @returns True when the email is already used.
