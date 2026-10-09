@@ -170,6 +170,23 @@ export class ManufacturingStore {
   };
 
   /**
+   * Releases a batch after the QA electronic signature.
+   * @param batchCode - Code of the batch.
+   */
+  releaseBatch = (batchCode: string): void => {
+    const batch = this.batchByCode(batchCode)();
+    if (!batch) return;
+    batch.status = 'released';
+    batch.lastActivity = 'Released by QA';
+    batch.lastActivityAt = new Date().toISOString();
+    this.manufacturingApi.updateBatch(batch).pipe(retry(2)).subscribe({
+      next: updated => this.batchesSignal.update(items => items.map(item => item.id === updated.id ? updated : item)),
+      error: err => this.errorSignal.set(this.formatError(err, 'Failed to release the batch'))
+    });
+    this.addEvent(batchCode, 'Released for distribution', 'QA electronic signature', 'normal');
+  };
+
+  /**
    * Records a raw-material receipt; the lot enters quarantine and moves to sampling.
    * @param lot - Lot received.
    */

@@ -1,6 +1,6 @@
 import {computed, inject, Injectable, signal} from '@angular/core';
 import {Router} from '@angular/router';
-import {retry} from 'rxjs';
+import {map, Observable, of, retry} from 'rxjs';
 import {IamApi} from '../infrastructure/iam-api';
 import {UserAssembler} from '../infrastructure/user-assembler';
 import {UserResource} from '../infrastructure/users-response';
@@ -185,6 +185,18 @@ export class IamStore {
         this.loadingSignal.set(false);
       }
     });
+  };
+
+  /**
+   * Re-authenticates the signed-in user, as required before an electronic signature.
+   * @param password - Password entered by the user.
+   * @returns Stream that emits true when the password is correct.
+   */
+  verifyPassword = (password: string): Observable<boolean> => {
+    const user = this.currentUser();
+    if (!user) return of(false);
+    return this.iamApi.findUserByCredentials(new SignInCommand({email: user.email, password, environment: user.environment as WorkspaceEnvironment}))
+      .pipe(map(found => found?.id === user.id));
   };
 
   /**
