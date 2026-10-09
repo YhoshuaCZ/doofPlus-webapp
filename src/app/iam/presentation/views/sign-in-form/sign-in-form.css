@@ -190,3 +190,7 @@ form {
     height: 52px;
   }
 }
+
+.links a {
+  margin-left: 6px;
+}

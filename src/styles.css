@@ -492,6 +492,15 @@ textarea {
 }
 
 @media (max-width: 700px) {
+  .card:has(> .table) {
+    overflow-x: auto;
+  }
+
+  .table th,
+  .table td {
+    white-space: nowrap;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
   }
