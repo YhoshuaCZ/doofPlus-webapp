@@ -1,0 +1,84 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.administration.short' | translate, 'iam.invite.title' | translate]"
+    [title]="'iam.invite.title' | translate"
+    [subtitle]="'iam.invite.subtitle' | translate"/>
+
+  <div class="stats">
+    <div class="stat"><p class="stat-value">{{ store.users().length }}</p><p class="stat-label">{{ 'iam.invite.active-users' | translate }}</p></div>
+    <div class="stat"><p class="stat-value">∞</p><p class="stat-label">{{ 'iam.invite.user-limit' | translate }}</p></div>
+    <div class="stat"><p class="stat-value">{{ store.pendingInvitations().length }}</p><p class="stat-label">{{ 'iam.invite.pending' | translate }}</p></div>
+    <div class="stat"><p class="stat-value">7 {{ 'iam.invite.days' | translate }}</p><p class="stat-label">{{ 'iam.invite.expiry' | translate }}</p></div>
+  </div>
+
+  <div class="columns">
+    <form class="card form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h2>{{ 'iam.invite.details' | translate }}</h2>
+      <label class="field" [class.invalid]="isInvalid('fullName')">
+        <span>{{ 'iam.invite.full-name' | translate }} *</span>
+        <input type="text" formControlName="fullName" autocomplete="name">
+        @if (isInvalid('fullName')) { <small class="field-error">{{ 'iam.invite.full-name-error' | translate }}</small> }
+      </label>
+      <label class="field" [class.invalid]="isInvalid('email') || duplicateEmail()">
+        <span>{{ 'iam.invite.email' | translate }} *</span>
+        <input type="email" formControlName="email" autocomplete="email" (input)="duplicateEmail.set(false)">
+        @if (isInvalid('email')) { <small class="field-error">{{ 'iam.invite.email-error' | translate }}</small> }
+        @if (duplicateEmail()) { <small class="field-error">{{ 'iam.invite.duplicate' | translate }}</small> }
+      </label>
+      <label class="field">
+        <span>{{ 'iam.invite.profile' | translate }} *</span>
+        <select formControlName="role">
+          @for (profile of store.roleProfiles(); track profile.id) {
+            <option [value]="profile.key">{{ 'roles.' + profile.key | translate }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>{{ 'iam.invite.facility' | translate }} *</span>
+        <select formControlName="facility">
+          @for (facility of facilities; track facility) {
+            <option [value]="facility">{{ facility }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>{{ 'iam.invite.note' | translate }}</span>
+        <textarea formControlName="note" rows="3"></textarea>
+      </label>
+      @if (selectedProfile(); as profile) {
+        <p class="restriction">⚠ {{ profile.restriction }}</p>
+      }
+      <div class="row">
+        <button type="submit" class="btn btn-primary" [disabled]="store.loading()">{{ 'iam.invite.send' | translate }}</button>
+        <a routerLink="/administration/users">{{ 'iam.invite.cancel' | translate }} →</a>
+      </div>
+    </form>
+
+    <aside class="stack">
+      @if (selectedProfile(); as profile) {
+        <section class="card preview">
+          <h2>{{ 'iam.invite.preview' | translate }}</h2>
+          <p class="small muted">{{ 'roles.' + profile.key | translate }}</p>
+          <div class="permission allowed">
+            <strong>{{ 'iam.users.can-create' | translate }}</strong>
+            <span>{{ profile.createEdit.join(', ') || ('iam.users.none' | translate) }}</span>
+          </div>
+          <div class="permission allowed">
+            <strong>{{ 'iam.users.can-approve' | translate }}</strong>
+            <span>{{ profile.approveSign }}</span>
+          </div>
+          <div class="permission denied">
+            <strong>{{ 'iam.users.restriction' | translate }}</strong>
+            <span>{{ profile.restriction }}</span>
+          </div>
+        </section>
+      }
+      <section class="card preview">
+        <h2>{{ 'iam.invite.states' | translate }}</h2>
+        <div class="state pending"><span class="chip chip-warning">{{ 'iam.status.pending' | translate }}</span><p class="small">{{ 'iam.invite.state-pending' | translate }}</p></div>
+        <div class="state duplicate"><span class="chip chip-danger">{{ 'iam.invite.duplicate-email' | translate }}</span><p class="small">{{ 'iam.invite.duplicate' | translate }}</p></div>
+        <div class="state sent"><span class="chip chip-success">{{ 'iam.invite.sent' | translate }}</span><p class="small">{{ 'iam.invite.state-sent' | translate }}</p></div>
+      </section>
+    </aside>
+  </div>
+</section>

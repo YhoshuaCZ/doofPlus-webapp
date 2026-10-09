@@ -6,5 +6,8 @@ export const environment = {
   */
   // API URL Version to be used until DoofPlus Platform is implemented
   platformProviderApiBaseUrl: 'http://localhost:3000/api/v1',
+  platformProviderUsersEndpointPath: '/users',
+  platformProviderRoleProfilesEndpointPath: '/role-profiles',
+  platformProviderInvitationsEndpointPath: '/invitations',
   landingPageUrl: 'https://ingescompany-7742.github.io/IngesCompany-LandingPage/'
 };

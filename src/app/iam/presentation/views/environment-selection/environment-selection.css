@@ -1,0 +1,87 @@
+.selection {
+  text-align: center;
+}
+
+.selection h1 {
+  margin: 10px 0 14px;
+  font-size: 40px;
+}
+
+.lead {
+  font-size: 17px;
+}
+
+.environments {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  margin: 44px 0 40px;
+  text-align: left;
+}
+
+.environment {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 32px 10px;
+  border-top: 5px solid var(--accent);
+  border-radius: 4px 4px var(--radius) var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.accent-teal { --accent: var(--teal); }
+.accent-blue { --accent: var(--blue); }
+.accent-slate { --accent: var(--slate); }
+
+.label {
+  margin-top: 12px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.environment h2 {
+  font-size: 24px;
+}
+
+.features {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.features li::before {
+  content: "✓";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.links {
+  margin-top: 12px;
+  font-size: 15px;
+}
+
+.links a {
+  margin-left: 6px;
+}
+
+@media (max-width: 1000px) {
+  .environments {
+    grid-template-columns: 1fr;
+  }
+}

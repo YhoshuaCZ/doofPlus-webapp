@@ -39,8 +39,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
@@ -63,10 +63,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "learning-center:build:production"
+              "buildTarget": "doofplus-webapp:build:production"
             },
             "development": {
-              "buildTarget": "learning-center:build:development"
+              "buildTarget": "doofplus-webapp:build:development"
             }
           },
           "defaultConfiguration": "development"

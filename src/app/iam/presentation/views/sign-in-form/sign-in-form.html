@@ -1,0 +1,107 @@
+@if (store.signInStep() === 'not-authorized') {
+  <section class="card denied">
+    <span class="chip" [class]="'chip-env-' + profile().accent">
+      <app-environment-icon [environment]="environment()" size="small"/>
+      {{ 'environments.' + environment() + '.role' | translate }}
+    </span>
+    <span class="denied-icon" aria-hidden="true">⦸</span>
+    <h1>{{ 'iam.sign-in.denied-title' | translate }}</h1>
+    <p class="muted">
+      {{ 'iam.sign-in.denied-text' | translate: {
+        role: ('roles.' + store.pendingUser()?.role | translate),
+        environment: ('environments.' + environment() + '.name' | translate) } }}
+    </p>
+    <a class="btn btn-primary btn-block" routerLink="/sign-in">{{ 'iam.sign-in.choose-another-environment' | translate }}</a>
+    <button type="button" class="link" (click)="backToCredentials()">{{ 'iam.sign-in.other-account' | translate }} →</button>
+  </section>
+} @else {
+  <section class="sign-in">
+    <aside class="panel" [class]="'panel-' + profile().accent">
+      <app-environment-icon [environment]="environment()" [inverse]="true"/>
+      <p class="panel-label">{{ 'environments.' + environment() + '.label' | translate }}</p>
+      <h2>{{ 'environments.' + environment() + '.headline' | translate }}</h2>
+      <p class="panel-text">{{ 'environments.' + environment() + '.description' | translate }}</p>
+      <ul>
+        @for (feature of profile().features; track feature) {
+          <li>{{ 'environments.features.' + feature | translate }}</li>
+        }
+      </ul>
+      <p class="panel-note">{{ 'iam.sign-in.access-note' | translate }}</p>
+    </aside>
+
+    <div class="card form-card">
+      <span class="chip" [class]="'chip-env-' + profile().accent">
+        <app-environment-icon [environment]="environment()" size="small"/>
+        {{ 'environments.' + environment() + '.role' | translate }}
+      </span>
+
+      @if (store.signInStep() === 'two-factor' || store.signInStep() === 'invalid-code') {
+        <h1>{{ 'iam.sign-in.two-factor-title' | translate }}</h1>
+        <p class="muted">
+          {{ 'iam.sign-in.two-factor-text' | translate: {name: store.pendingUser()?.fullName, email: store.pendingUser()?.email} }}
+        </p>
+        <form (submit)="submitCode($event)">
+          <p class="field-label">{{ 'iam.sign-in.code' | translate }} *</p>
+          <div class="code" [class.invalid]="store.signInStep() === 'invalid-code'">
+            @for (digit of codeDigits(); track $index) {
+              <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code"
+                     [attr.aria-label]="('iam.sign-in.digit' | translate) + ' ' + ($index + 1)"
+                     [value]="digit" (input)="updateDigit($index, $event)">
+            }
+          </div>
+          @if (store.signInStep() === 'invalid-code') {
+            <p class="field-error">{{ 'iam.sign-in.invalid-code' | translate }}</p>
+          }
+          <p class="small muted">{{ 'iam.sign-in.code-hint' | translate }}</p>
+          <button type="submit" class="btn btn-block" [class]="'btn-' + profile().accent" [disabled]="!codeComplete()">
+            {{ 'iam.sign-in.verify' | translate }}
+          </button>
+        </form>
+        <button type="button" class="link" (click)="backToCredentials()">← {{ 'iam.sign-in.back-to-sign-in' | translate }}</button>
+      } @else {
+        <h1>{{ 'iam.sign-in.title' | translate: {environment: ('environments.' + environment() + '.name' | translate)} }}</h1>
+        <p class="muted">{{ 'iam.sign-in.subtitle' | translate }}</p>
+
+        @if (store.signInStep() === 'invalid-credentials') {
+          <div class="alert alert-danger" role="alert">
+            <div>
+              <strong>{{ 'iam.sign-in.invalid-title' | translate }}</strong>
+              <p>{{ 'iam.sign-in.invalid-text' | translate }}</p>
+            </div>
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submitCredentials()" novalidate>
+          <label class="field" [class.invalid]="isInvalid('email')">
+            <span>{{ 'iam.sign-in.email' | translate }} *</span>
+            <input type="email" formControlName="email" autocomplete="email" placeholder="name@laboratory.com.pe">
+            @if (isInvalid('email')) {
+              <small class="field-error">{{ 'iam.sign-in.email-error' | translate }}</small>
+            }
+          </label>
+          <label class="field" [class.invalid]="isInvalid('password')">
+            <span>{{ 'iam.sign-in.password' | translate }} *</span>
+            <span class="password">
+              <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="current-password">
+              <button type="button" class="toggle" (click)="showPassword.set(!showPassword())"
+                      [attr.aria-label]="(showPassword() ? 'iam.sign-in.hide-password' : 'iam.sign-in.show-password') | translate">
+                {{ showPassword() ? '🙈' : '👁' }}
+              </button>
+            </span>
+            @if (isInvalid('password')) {
+              <small class="field-error">{{ 'iam.sign-in.password-error' | translate }}</small>
+            }
+          </label>
+          <button type="submit" class="btn btn-block" [class]="'btn-' + profile().accent" [disabled]="store.loading()">
+            {{ 'iam.sign-in.continue' | translate }}
+          </button>
+        </form>
+
+        <div class="links">
+          <p><strong>{{ 'iam.sign-in.not-your-environment' | translate }}</strong> <a routerLink="/sign-in">{{ 'iam.sign-in.choose-another' | translate }} →</a></p>
+          <p><strong>{{ 'iam.selection.new-laboratory' | translate }}</strong> <a routerLink="/register">{{ 'iam.selection.register' | translate }} →</a></p>
+        </div>
+      }
+    </div>
+  </section>
+}

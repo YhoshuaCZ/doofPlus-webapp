@@ -1,0 +1,48 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+}
+
+.restriction {
+  padding: 10px 14px;
+  border: 1px solid var(--danger-border);
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger-dark);
+  font-size: 13px;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+
+.permission,
+.state {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+
+.permission span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.allowed { background: var(--mint); }
+.denied { background: var(--danger-bg); }
+
+.state {
+  align-items: flex-start;
+  border: 1px solid;
+}
+
+.pending { border-color: var(--warning-border); background: var(--warning-bg); }
+.duplicate { border-color: var(--danger-border); background: var(--danger-bg); }
+.sent { border-color: #bbf7d0; background: #f0fdf4; }
