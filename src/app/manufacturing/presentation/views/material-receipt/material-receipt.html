@@ -1,0 +1,125 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.production.short' | translate, 'manufacturing.receipt.title' | translate]"
+    [title]="'manufacturing.receipt.title' | translate"
+    [subtitle]="selected() ? selected()!.receiptCode + ' · ' + selected()!.material + ' · ' + ('manufacturing.receipt.subtitle' | translate) : ''"/>
+
+  <div class="alert"><div><strong>⚠ {{ 'manufacturing.receipt.alert' | translate }}</strong></div></div>
+
+  <ol class="stepper">
+    @for (step of steps; track step; let i = $index) {
+      <li [class.done]="i < stepIndex()" [class.current]="i === stepIndex()">
+        <span>{{ i < stepIndex() ? '✓' : i + 1 }}</span>{{ 'manufacturing.receipt.step.' + step | translate }}
+      </li>
+    }
+  </ol>
+
+  <div class="columns">
+    <div class="stack">
+      <form class="card receipt" [formGroup]="form" (ngSubmit)="record()" novalidate>
+        <h2>{{ 'manufacturing.receipt.details' | translate }}</h2>
+        <p class="small muted">* {{ 'manufacturing.receipt.required' | translate }}</p>
+        <div class="form-grid">
+          <label class="field" [class.invalid]="isInvalid('material')">
+            <span>{{ 'manufacturing.receipt.material' | translate }} *</span>
+            <input type="text" formControlName="material">
+          </label>
+          <label class="field" [class.invalid]="isInvalid('supplier')">
+            <span>{{ 'manufacturing.receipt.supplier' | translate }} *</span>
+            <input type="text" formControlName="supplier">
+          </label>
+          <label class="field" [class.invalid]="isInvalid('supplierLot')">
+            <span>{{ 'manufacturing.receipt.supplier-lot' | translate }} *</span>
+            <input type="text" formControlName="supplierLot" placeholder="MI-AC-0926">
+          </label>
+          <label class="field" [class.invalid]="isInvalid('code') || duplicateLot()">
+            <span>{{ 'manufacturing.receipt.internal-lot' | translate }} *</span>
+            <input type="text" formControlName="code" placeholder="RM-26105" (input)="duplicateLot.set(false)">
+            @if (isInvalid('code')) { <small class="field-error">{{ 'manufacturing.receipt.lot-error' | translate }}</small> }
+            @if (duplicateLot()) { <small class="field-error">{{ 'manufacturing.receipt.lot-duplicate' | translate }}</small> }
+          </label>
+          <label class="field" [class.invalid]="isInvalid('quantity')">
+            <span>{{ 'manufacturing.receipt.quantity' | translate }} *</span>
+            <input type="text" formControlName="quantity" placeholder="500 kg · 20 sealed drums">
+          </label>
+          <label class="field" [class.invalid]="isInvalid('expiryDate')">
+            <span>{{ 'manufacturing.receipt.expiry' | translate }} *</span>
+            <input type="date" formControlName="expiryDate">
+          </label>
+          <label class="field full">
+            <span>{{ 'manufacturing.receipt.location' | translate }} *</span>
+            <input type="text" formControlName="storageLocation">
+          </label>
+          <label class="field full" [class.invalid]="isInvalid('certificate')">
+            <span>{{ 'manufacturing.receipt.certificate' | translate }} *</span>
+            <input type="file" accept=".pdf" (change)="attachCertificate($event)">
+            @if (form.controls.certificate.value) {
+              <span class="attached">📎 {{ form.controls.certificate.value }} <span class="chip chip-success">{{ 'manufacturing.receipt.attached' | translate }}</span></span>
+            }
+          </label>
+        </div>
+        <div class="row">
+          <button type="submit" class="btn btn-primary" [disabled]="store.loading()">{{ 'manufacturing.receipt.record' | translate }}</button>
+          <span class="small muted">{{ 'manufacturing.receipt.record-note' | translate }}</span>
+        </div>
+      </form>
+
+      <section class="card">
+        <div class="card-header"><h2>{{ 'manufacturing.receipt.lots' | translate }}</h2></div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ 'manufacturing.receipt.internal-lot' | translate }}</th>
+              <th>{{ 'manufacturing.receipt.material' | translate }}</th>
+              <th>{{ 'manufacturing.receipt.expiry' | translate }}</th>
+              <th>{{ 'manufacturing.receipt.disposition' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (lot of store.materialLots(); track lot.id) {
+              <tr class="clickable" [class.highlight]="lot.code === selected()?.code" (click)="selectedCode.set(lot.code)">
+                <td><strong>{{ lot.code }}</strong><span class="sub">{{ lot.receiptCode }}</span></td>
+                <td>{{ lot.material }}<span class="sub">{{ lot.supplier }}</span></td>
+                <td>{{ lot.expiryDate | date: 'MMM dd, yyyy' }}</td>
+                <td><span class="chip chip-dot" [class]="lot.status === 'approved' ? 'chip-success' : lot.status === 'rejected' ? 'chip-danger' : 'chip-warning'">{{ 'manufacturing.lot-status.' + lot.status | translate }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <aside class="stack">
+      @if (selected(); as lot) {
+        <section class="card side">
+          <h2>{{ 'manufacturing.receipt.checklist' | translate }} · {{ lot.code }}</h2>
+          <div class="check">
+            <span><strong>{{ 'manufacturing.receipt.packaging' | translate }}</strong></span>
+            <span class="chip chip-dot" [class]="lot.packagingVerified ? 'chip-success' : 'chip-warning'">{{ (lot.packagingVerified ? 'manufacturing.receipt.verified' : 'manufacturing.receipt.pending') | translate }}</span>
+          </div>
+          <div class="check">
+            <span><strong>{{ 'manufacturing.receipt.identity' | translate }}</strong></span>
+            <span class="chip chip-dot" [class]="lot.identityVerified ? 'chip-success' : 'chip-warning'">{{ (lot.identityVerified ? 'manufacturing.receipt.verified' : 'manufacturing.receipt.pending') | translate }}</span>
+          </div>
+          <div class="check">
+            <span><strong>{{ 'manufacturing.receipt.sampling' | translate }}</strong></span>
+            <span class="chip chip-dot" [class]="lot.samplingStatus === 'done' ? 'chip-success' : 'chip-warning'">{{ 'manufacturing.sampling-status.' + lot.samplingStatus | translate }}</span>
+          </div>
+          <div class="check">
+            <span><strong>{{ 'manufacturing.receipt.quality-approval' | translate }}</strong><span class="small muted">{{ 'manufacturing.receipt.quality-approval-text' | translate }}</span></span>
+            <span class="chip chip-dot chip-neutral">{{ 'manufacturing.lot-status.' + lot.status | translate }}</span>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" (click)="store.requestInspection(lot)"
+                  [disabled]="lot.samplingStatus !== 'pending' || lot.status === 'approved' || lot.status === 'rejected'">
+            {{ 'manufacturing.receipt.request-inspection' | translate }}
+          </button>
+        </section>
+        <section class="card side">
+          <h2>{{ 'manufacturing.receipt.disposition' | translate }}</h2>
+          <span class="chip chip-dot chip-warning">{{ 'manufacturing.lot-status.' + lot.status | translate }}</span>
+          <p class="small muted">{{ 'manufacturing.receipt.disposition-text' | translate }}</p>
+        </section>
+      }
+    </aside>
+  </div>
+</section>

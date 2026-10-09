@@ -1,0 +1,103 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.production.short' | translate, 'nav.products-formulas' | translate]"
+    [title]="'manufacturing.products.title' | translate"
+    [subtitle]="'manufacturing.products.subtitle' | translate"/>
+
+  <div class="columns">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2>{{ 'manufacturing.products.catalog' | translate }}</h2>
+          <p class="small muted">{{ 'manufacturing.products.catalog-text' | translate: {count: store.products().length} }}</p>
+        </div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{{ 'manufacturing.products.code' | translate }}</th>
+            <th>{{ 'manufacturing.products.product' | translate }}</th>
+            <th>{{ 'manufacturing.products.dosage-form' | translate }}</th>
+            <th>{{ 'manufacturing.products.formula' | translate }}</th>
+            <th>{{ 'manufacturing.products.status' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of store.products(); track product.id) {
+            <tr class="clickable" [class.highlight]="product.code === selectedCode()" (click)="selectedCode.set(product.code)">
+              <td><strong>{{ product.code }}</strong></td>
+              <td>{{ product.name }}</td>
+              <td>{{ product.dosageForm }}</td>
+              <td>{{ product.formulaVersion || '—' }}</td>
+              <td><span class="chip chip-dot" [class]="toneOf(product.formulaStatus)">{{ 'manufacturing.formula-status.' + product.formulaStatus | translate }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <form class="card new-product" [formGroup]="form" (ngSubmit)="register()" novalidate>
+      <h2>{{ 'manufacturing.products.new' | translate }}</h2>
+      <p class="small muted">{{ 'manufacturing.products.new-text' | translate }}</p>
+      <label class="field" [class.invalid]="isInvalid('code') || duplicateCode()">
+        <span>{{ 'manufacturing.products.code' | translate }} *</span>
+        <input type="text" formControlName="code" maxlength="5" (input)="duplicateCode.set(null)" placeholder="AC500">
+        @if (isInvalid('code')) { <small class="field-error">▲ {{ 'manufacturing.products.code-error' | translate }}</small> }
+        @if (duplicateCode()) { <small class="field-error">▲ {{ 'manufacturing.products.duplicate' | translate: {code: duplicateCode()} }}</small> }
+      </label>
+      <label class="field" [class.invalid]="isInvalid('name')">
+        <span>{{ 'manufacturing.products.name' | translate }} *</span>
+        <input type="text" formControlName="name" placeholder="Paracetamol 500 mg">
+      </label>
+      <label class="field">
+        <span>{{ 'manufacturing.products.dosage-form' | translate }} *</span>
+        <select formControlName="dosageForm">
+          @for (form of dosageForms; track form) { <option [value]="form">{{ form }}</option> }
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary btn-block">{{ 'manufacturing.products.register' | translate }}</button>
+    </form>
+  </div>
+
+  @if (formula(); as current) {
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2>{{ 'manufacturing.products.formula-title' | translate: {code: current.productCode, version: current.version} }}</h2>
+          <p class="small muted">
+            {{ 'manufacturing.products.formula-text' | translate: {by: current.approvedBy, size: current.batchSize} }}
+            · {{ current.approvedAt | date: 'MMM dd, yyyy' }}
+          </p>
+        </div>
+        <span class="chip chip-dot" [class]="current.status === 'approved' ? 'chip-success' : 'chip-warning'">
+          {{ 'manufacturing.formula-status.' + (current.status === 'approved' ? 'locked' : 'draft') | translate }}
+        </span>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{{ 'manufacturing.products.component' | translate }}</th>
+            <th>{{ 'manufacturing.products.function' | translate }}</th>
+            <th>{{ 'manufacturing.products.quantity' | translate }}</th>
+            <th>{{ 'manufacturing.products.supplier' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of components(); track item.id; let i = $index) {
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.role }}</td>
+              <td>{{ item.target }}</td>
+              <td>{{ item.control }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="muted">{{ 'manufacturing.products.no-components' | translate }}</td></tr>
+          }
+        </tbody>
+      </table>
+      <p class="card-body small muted protected">🔒 {{ 'manufacturing.products.protected' | translate }}</p>
+    </section>
+  }
+</section>

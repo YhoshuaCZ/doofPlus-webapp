@@ -10,6 +10,7 @@ const subscriptionsRoutes = () => import('./subscriptions/presentation/subscript
 const organizationsPublicRoutes = () => import('./organizations/presentation/organizations.routes').then(m => m.organizationsPublicRoutes);
 const organizationsAdministrationRoutes = () => import('./organizations/presentation/organizations.routes').then(m => m.organizationsAdministrationRoutes);
 const profileRoutes = () => import('./organizations/presentation/organizations.routes').then(m => m.profileRoutes);
+const manufacturingRoutes = () => import('./manufacturing/presentation/manufacturing.routes').then(m => m.manufacturingRoutes);
 const baseTitle = 'DoofPlus';
 
 /**
@@ -31,6 +32,7 @@ export const routes: Routes = [
   ]},
   { path: 'production',     component: WorkspaceShell, canActivate: [iamGuard], data: { environment: 'production' }, children: [
     { path: '', loadChildren: profileRoutes },
+    { path: '', loadChildren: manufacturingRoutes },
     notFound
   ]},
   { path: 'administration', component: WorkspaceShell, canActivate: [iamGuard], data: { environment: 'administration' }, children: [

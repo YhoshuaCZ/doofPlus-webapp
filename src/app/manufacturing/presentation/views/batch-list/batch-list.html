@@ -1,0 +1,134 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.production.short' | translate, 'nav.batches' | translate]"
+    [title]="'nav.batches' | translate"
+    [subtitle]="'manufacturing.batches.subtitle' | translate">
+    <button type="button" class="btn btn-primary" (click)="openCreate()">+ {{ 'manufacturing.batches.create' | translate }}</button>
+  </app-page-header>
+
+  <div class="stats">
+    <div class="stat"><p class="stat-label">{{ 'manufacturing.batch-status.in-progress' | translate }}</p><p class="stat-value teal">{{ store.batchCounts()['in-progress'] ?? 0 }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'manufacturing.batch-status.on-hold' | translate }}</p><p class="stat-value warn">{{ store.batchCounts()['on-hold'] ?? 0 }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'manufacturing.batch-status.release-requested' | translate }}</p><p class="stat-value teal">{{ store.batchCounts()['release-requested'] ?? 0 }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'manufacturing.batch-status.released' | translate }}</p><p class="stat-value teal">{{ store.batchCounts()['released'] ?? 0 }}</p></div>
+  </div>
+
+  <nav class="tabs">
+    @for (tab of ['all', 'in-progress', 'on-hold', 'released']; track tab) {
+      <a href="javascript:void(0)" [class.active]="filter() === tab" (click)="filter.set($any(tab))">{{ 'manufacturing.batches.tab.' + tab | translate }}</a>
+    }
+  </nav>
+
+  <div class="columns">
+    <div class="stack">
+      <section class="card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ 'manufacturing.batches.batch-product' | translate }}</th>
+              <th>{{ 'manufacturing.batches.order-quantity' | translate }}</th>
+              <th>{{ 'manufacturing.batches.owner' | translate }}</th>
+              <th>{{ 'manufacturing.products.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (batch of visibleBatches(); track batch.id) {
+              <tr class="clickable" [class.highlight]="batch.code === selectedCode()" (click)="selectedCode.set(batch.code)">
+                <td><a [routerLink]="['/production/batches', batch.code]">{{ batch.code }}</a><span class="sub">{{ batch.productCode }}</span></td>
+                <td>{{ batch.orderCode }}<span class="sub">{{ batch.quantity | number }} {{ 'manufacturing.units' | translate }}</span></td>
+                <td>{{ batch.owner }}</td>
+                <td><span class="chip" [class]="toneOf(batch.status)">{{ 'manufacturing.batch-status.' + batch.status | translate }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p class="card-body small muted footnote">{{ 'manufacturing.batches.showing' | translate: {shown: visibleBatches().length, total: store.batches().length} }}</p>
+      </section>
+
+      <section class="card lookup">
+        <h2>{{ 'manufacturing.batches.lookup' | translate }}</h2>
+        <p class="small muted">{{ 'manufacturing.batches.lookup-text' | translate }}</p>
+        <div class="row">
+          <input class="lookup-input" type="text" [formControl]="lookup" (keyup.enter)="search()">
+          <button type="button" class="btn btn-primary btn-sm" (click)="search()">{{ 'manufacturing.batches.search' | translate }}</button>
+        </div>
+        @if (notFound()) { <p class="field-error">{{ 'manufacturing.batches.not-found' | translate }}</p> }
+      </section>
+    </div>
+
+    <aside class="stack">
+      @if (selected(); as batch) {
+        <section class="card summary">
+          <p class="state" [class]="'state-' + batch.status">{{ 'manufacturing.batch-status.' + batch.status | translate }}</p>
+          <h2>{{ batch.code }}</h2>
+          <p class="muted">{{ store.productByCode(batch.productCode)()?.name }}</p>
+          <p class="muted">{{ batch.quantity | number }} {{ 'manufacturing.units' | translate }} · {{ batch.line }}</p>
+          @if (batch.incident) {
+            <p class="label danger">{{ 'manufacturing.batches.incident' | translate }}</p>
+            <p>{{ batch.incident }}</p>
+          }
+          <p class="label">{{ 'manufacturing.batches.last-activity' | translate }}</p>
+          <p>{{ batch.lastActivityAt | date: 'MMM dd, HH:mm' : 'UTC' }} UTC</p>
+          <p class="muted">{{ batch.lastActivity }}</p>
+          <a [routerLink]="['/production/batches', batch.code]">{{ 'manufacturing.batches.view-genealogy' | translate }} →</a>
+        </section>
+      }
+      <section class="card summary">
+        <h2>{{ 'manufacturing.batches.definitions' | translate }}</h2>
+        <strong>{{ 'manufacturing.batches.definition-hold' | translate }}</strong>
+        <p class="small muted">{{ 'manufacturing.batches.definition-hold-text' | translate }}</p>
+        <strong>{{ 'manufacturing.batches.definition-release' | translate }}</strong>
+        <p class="small muted">{{ 'manufacturing.batches.definition-release-text' | translate }}</p>
+      </section>
+    </aside>
+  </div>
+</section>
+
+@if (creating()) {
+  <div class="backdrop" (click)="creating.set(false)">
+    <form class="card dialog" [formGroup]="form" (ngSubmit)="create()" (click)="$event.stopPropagation()" novalidate>
+      @if (rejection().length) {
+        <span class="dialog-icon" aria-hidden="true">!</span>
+        <h2>{{ 'manufacturing.batches.rejected-title' | translate }}</h2>
+        <p class="muted">
+          @for (reason of rejection(); track reason) {
+            {{ 'manufacturing.batches.rejected.' + reason | translate: {code: form.controls.code.value, product: form.controls.productCode.value} }}
+          }
+        </p>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-outline" (click)="creating.set(false)">{{ 'subscriptions.cancel' | translate }}</button>
+          <button type="button" class="btn btn-primary" (click)="rejection.set([])">{{ 'manufacturing.batches.change-data' | translate }}</button>
+        </div>
+      } @else {
+        <h2>{{ 'manufacturing.batches.create' | translate }}</h2>
+        <label class="field" [class.invalid]="form.controls.code.invalid && form.controls.code.touched">
+          <span>{{ 'manufacturing.batches.batch-code' | translate }} *</span>
+          <input type="text" formControlName="code" placeholder="B-26045">
+          @if (form.controls.code.invalid && form.controls.code.touched) { <small class="field-error">{{ 'manufacturing.batches.code-error' | translate }}</small> }
+        </label>
+        <label class="field">
+          <span>{{ 'manufacturing.products.product' | translate }} *</span>
+          <select formControlName="productCode">
+            @for (product of store.products(); track product.id) { <option [value]="product.code">{{ product.code }} · {{ product.name }}</option> }
+          </select>
+        </label>
+        <div class="form-grid">
+          <label class="field">
+            <span>{{ 'manufacturing.batches.quantity' | translate }} *</span>
+            <input type="number" formControlName="quantity" min="1">
+          </label>
+          <label class="field">
+            <span>{{ 'manufacturing.batches.line' | translate }} *</span>
+            <select formControlName="line">
+              @for (line of ['Line 01', 'Line 02', 'Line 03']; track line) { <option [value]="line">{{ line }}</option> }
+            </select>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-outline" (click)="creating.set(false)">{{ 'subscriptions.cancel' | translate }}</button>
+          <button type="submit" class="btn btn-primary">{{ 'manufacturing.batches.create' | translate }}</button>
+        </div>
+      }
+    </form>
+  </div>
+}

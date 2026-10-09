@@ -1,0 +1,100 @@
+<section class="page">
+  @if (order(); as po) {
+    <app-page-header
+      [breadcrumb]="['shell.workspace' | translate, 'environments.production.short' | translate, 'nav.production-orders' | translate, po.code]"
+      [title]="('manufacturing.orders.order-title' | translate) + ' ' + po.code"
+      [subtitle]="(product()?.name ?? '') + ' (' + po.productCode + ') · MFR-' + po.productCode + ' ' + (formula()?.version ?? '') + ' · ' + po.batchCode">
+      <button type="button" class="btn btn-primary" (click)="recordOperation()" [disabled]="!!heldOperation()">{{ 'manufacturing.orders.record' | translate }}</button>
+    </app-page-header>
+
+    @if (heldOperation(); as held) {
+      <div class="alert"><div><strong>⚠ {{ 'manufacturing.orders.hold-alert' | translate: {operation: held.name, reference: held.reference} }}</strong></div></div>
+    }
+
+    <div class="columns">
+      <div class="stack">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>{{ 'manufacturing.orders.execution' | translate }} · {{ po.batchCode }}</h2>
+              <p class="small muted">{{ 'manufacturing.orders.execution-text' | translate }}</p>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>{{ 'manufacturing.orders.operation' | translate }}</th>
+                <th>{{ 'manufacturing.orders.equipment' | translate }}</th>
+                <th>{{ 'manufacturing.orders.progress' | translate }}</th>
+                <th>{{ 'manufacturing.products.status' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (operation of operations(); track operation.id) {
+                <tr [class.highlight]="operation.status === 'on-hold'">
+                  <td><strong>{{ operation.name }}</strong></td>
+                  <td>{{ operation.equipment }}</td>
+                  <td>{{ operation.progress }} %</td>
+                  <td><span class="chip chip-dot" [class]="toneOf(operation.status)">
+                    {{ 'manufacturing.operation-status.' + operation.status | translate }}@if (operation.reference) { · {{ operation.reference }} }</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+
+        @if (formula(); as mfr) {
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2>{{ 'manufacturing.orders.formula' | translate }} · MFR-{{ mfr.productCode }} {{ mfr.version }}</h2>
+                <p class="small muted">{{ 'manufacturing.orders.formula-text' | translate }} {{ mfr.approvedAt | date: 'MMM dd, yyyy' }}</p>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>{{ 'manufacturing.orders.ingredient' | translate }}</th>
+                  <th>{{ 'manufacturing.orders.target' | translate }}</th>
+                  <th>{{ 'manufacturing.orders.tolerance' | translate }}</th>
+                  <th>{{ 'manufacturing.orders.control' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items(); track item.id) {
+                  <tr>
+                    <td [class.strong]="item.role === 'Active ingredient'">{{ item.name }}</td>
+                    <td>{{ item.target }}</td>
+                    <td>{{ item.tolerance }}</td>
+                    <td>{{ item.control }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </section>
+        }
+      </div>
+
+      <aside class="stack">
+        <section class="card context">
+          <h2>{{ 'manufacturing.orders.context' | translate }}</h2>
+          <p class="label">{{ 'manufacturing.orders.status' | translate }}</p>
+          <span class="chip chip-dot" [class]="po.status === 'on-hold' ? 'chip-danger' : po.status === 'planned' ? 'chip-neutral' : 'chip-success'">{{ 'manufacturing.order-status.' + po.status | translate }}</span>
+          <p class="label">{{ 'manufacturing.products.product' | translate }}</p>
+          <p>{{ product()?.name }} · {{ po.productCode }}</p>
+          <p class="label">{{ 'manufacturing.orders.planned-quantity' | translate }}</p>
+          <p>{{ po.plannedQuantity | number }} {{ 'manufacturing.units' | translate }}</p>
+          <p class="label">{{ 'manufacturing.orders.formula' | translate }}</p>
+          <p>MFR-{{ po.productCode }} {{ formula()?.version }} · {{ 'manufacturing.formula-status.locked' | translate }}</p>
+          <p class="label">{{ 'manufacturing.orders.approved' | translate }}</p>
+          <p>{{ formula()?.approvedAt | date: 'MMM dd, yyyy' }} · {{ formula()?.approvedBy }}</p>
+          <p class="label">{{ 'manufacturing.orders.planned-execution' | translate }}</p>
+          <p>{{ po.plannedStart | date: 'MMM dd, HH:mm' : 'UTC' }}–{{ po.plannedEnd | date: 'HH:mm' : 'UTC' }} · {{ po.line }}</p>
+          <a [routerLink]="['/production/batches', po.batchCode]">{{ 'manufacturing.batches.view-genealogy' | translate }} →</a>
+        </section>
+      </aside>
+    </div>
+  } @else {
+    <p class="muted">{{ 'manufacturing.orders.not-found' | translate }}</p>
+  }
+</section>
