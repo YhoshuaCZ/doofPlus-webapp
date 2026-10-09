@@ -1,0 +1,102 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.production.short' | translate, 'nav.iot-overview' | translate]"
+    [title]="'nav.iot-overview' | translate"
+    [subtitle]="'monitoring.overview.subtitle' | translate">
+    <a class="btn btn-primary" routerLink="/production/incidents">{{ 'monitoring.overview.view-alerts' | translate }}</a>
+  </app-page-header>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-label">{{ 'monitoring.overview.sensors-online' | translate }}</p>
+      <p class="stat-value">{{ store.onlineSensors().length }} / {{ store.sensors().length }}</p>
+      <p class="stat-note">{{ 'monitoring.overview.offline' | translate: {count: store.sensors().length - store.onlineSensors().length} }}</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">{{ 'monitoring.overview.equipment' | translate }}</p>
+      <p class="stat-value">{{ store.equipment().length }}</p>
+      <p class="stat-note">{{ 'monitoring.overview.equipment-note' | translate }}</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">{{ 'monitoring.overview.active-alerts' | translate }}</p>
+      <p class="stat-value danger">{{ store.activeAlerts().length }}</p>
+      <span class="chip chip-danger">{{ 'monitoring.overview.critical' | translate: {count: criticalCount()} }}</span>
+    </div>
+    <div class="stat">
+      <p class="stat-label">{{ 'monitoring.overview.availability' | translate }}</p>
+      <p class="stat-value teal">99.8%</p>
+      <p class="stat-note">{{ 'monitoring.overview.past-day' | translate }}</p>
+    </div>
+  </div>
+
+  <div class="columns">
+    <div class="stack">
+      @if (sensor(); as current) {
+        <section class="card panel">
+          <div class="row">
+            <h2>{{ current.equipmentCode }} · {{ 'monitoring.type.' + current.type | translate }}</h2>
+            <span class="spacer"></span>
+            <select class="sensor-select" [value]="sensorCode()" (change)="sensorCode.set($any($event.target).value)">
+              @for (item of store.onlineSensors(); track item.id) {
+                <option [value]="item.code" [selected]="item.code === sensorCode()">{{ item.code }} · {{ item.equipmentCode }}</option>
+              }
+            </select>
+          </div>
+          <p class="muted">{{ current.code }} · {{ 'monitoring.range' | translate: {lower: current.lowerLimit, upper: current.upperLimit, unit: current.unit} }}</p>
+          @if (lastReading(); as last) {
+            <p class="current" [class.out]="store.isOutOfRange(last)">
+              {{ last.value }} {{ current.unit }} · {{ (store.isOutOfRange(last) ? 'monitoring.out-of-range' : 'monitoring.within-range') | translate }}
+              @if (store.alertOfSensor(current.code)(); as alert) { <span class="alert-flag">{{ 'monitoring.alert-open' | translate }} · {{ alert.code }}</span> }
+            </p>
+          }
+          <app-telemetry-chart [readings]="readings()" [lower]="current.lowerLimit" [upper]="current.upperLimit" [unit]="current.unit"
+                               [emptyText]="'monitoring.no-data' | translate"/>
+          <a [routerLink]="['/production/sensors', current.code]">{{ 'monitoring.overview.sensor-detail' | translate }} →</a>
+        </section>
+      }
+
+      <section class="card">
+        <div class="card-header"><h2>{{ 'monitoring.overview.alert-queue' | translate }}</h2></div>
+        <div class="card-body"><div class="alert"><div><strong>⚠ {{ 'monitoring.acknowledgment-rule' | translate }}</strong></div></div></div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ 'monitoring.alert-sensor' | translate }}</th>
+              <th>{{ 'monitoring.equipment-column' | translate }}</th>
+              <th>{{ 'monitoring.severity' | translate }}</th>
+              <th>{{ 'monitoring.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (alert of store.activeAlerts(); track alert.id) {
+              <tr>
+                <td><a [routerLink]="['/production/sensors', alert.sensorCode]">{{ alert.code }} · {{ alert.sensorCode }}</a></td>
+                <td>{{ alert.equipmentCode }}</td>
+                <td><span class="chip" [class]="alert.severity === 'critical' ? 'chip-danger' : 'chip-warning'">{{ 'monitoring.severity-level.' + alert.severity | translate }}</span></td>
+                <td><span class="chip" [class]="statusTone(alert.status)">{{ 'monitoring.alert-status.' + alert.status | translate }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <aside class="stack">
+      <section class="card side">
+        <h2>{{ 'monitoring.overview.health' | translate }}</h2>
+        @for (item of store.equipment(); track item.id) {
+          <a class="health" [class]="'health-' + item.calibrationStatus" routerLink="/production/equipment">
+            <strong>{{ item.code }} · {{ 'monitoring.calibration.' + item.calibrationStatus | translate }}</strong>
+            <span>{{ item.healthNote }}</span>
+          </a>
+        }
+      </section>
+      <section class="card side">
+        <h2>{{ 'monitoring.overview.rules' | translate }}</h2>
+        <div class="rule teal"><strong>{{ 'monitoring.rules.threshold' | translate }}</strong><span>{{ 'monitoring.rules.threshold-text' | translate }}</span></div>
+        <div class="rule blue"><strong>{{ 'monitoring.rules.offline' | translate }}</strong><span>{{ 'monitoring.rules.offline-text' | translate }}</span></div>
+        <div class="rule yellow"><strong>{{ 'monitoring.rules.acknowledgment' | translate }}</strong><span>{{ 'monitoring.rules.acknowledgment-text' | translate }}</span></div>
+      </section>
+    </aside>
+  </div>
+</section>

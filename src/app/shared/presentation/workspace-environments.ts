@@ -73,6 +73,7 @@ export const workspaceEnvironments: Record<WorkspaceEnvironment, EnvironmentProf
       { link: '/production/raw-materials', label: 'nav.raw-materials' },
       { link: '/production/equipment', label: 'nav.equipment-sensors' },
       { link: '/production/iot', label: 'nav.iot-overview' },
+      { link: '/production/incidents', label: 'nav.incidents' },
       { link: '/production/tasks', label: 'nav.tasks' }
     ]
   },

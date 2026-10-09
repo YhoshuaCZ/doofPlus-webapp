@@ -1,0 +1,117 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.production.short' | translate, 'nav.equipment-sensors' | translate]"
+    [title]="'monitoring.equipment.title' | translate"
+    [subtitle]="'monitoring.equipment.subtitle' | translate"/>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h2>{{ 'monitoring.equipment.inventory' | translate }}</h2>
+        <p class="small muted">{{ 'monitoring.equipment.inventory-text' | translate }}</p>
+      </div>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>{{ 'monitoring.equipment.code' | translate }}</th>
+          <th>{{ 'monitoring.equipment.equipment' | translate }}</th>
+          <th>{{ 'monitoring.equipment.model' | translate }}</th>
+          <th>{{ 'monitoring.equipment.location' | translate }}</th>
+          <th>{{ 'monitoring.equipment.calibration' | translate }}</th>
+          <th>{{ 'monitoring.equipment.next-maintenance' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of store.equipment(); track item.id) {
+          <tr class="clickable" [class.highlight]="item.code === selectedCode()" (click)="selectedCode.set(item.code)">
+            <td><strong>{{ item.code }}</strong></td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.model }}</td>
+            <td>{{ item.location }}</td>
+            <td><span class="chip chip-dot" [class]="calibrationTone(item.calibrationStatus)">{{ 'monitoring.calibration.' + item.calibrationStatus | translate }}</span></td>
+            <td [class.overdue]="item.calibrationStatus === 'not-fit'">{{ item.nextMaintenance | date: 'MMM dd, yyyy' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <div class="columns">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2>{{ 'monitoring.equipment.sensors' | translate }} · {{ selectedCode() }}</h2>
+          <p class="small muted">{{ 'monitoring.equipment.sensors-text' | translate }}</p>
+        </div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{{ 'monitoring.equipment.sensor' | translate }}</th>
+            <th>{{ 'monitoring.equipment.device-id' | translate }}</th>
+            <th>{{ 'monitoring.equipment.type' | translate }}</th>
+            <th>{{ 'monitoring.equipment.limits' | translate }}</th>
+            <th>{{ 'monitoring.status' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sensor of sensors(); track sensor.id) {
+            <tr>
+              <td><a [routerLink]="['/production/sensors', sensor.code]">{{ sensor.code }}</a></td>
+              <td class="mono">{{ sensor.deviceId }}</td>
+              <td>{{ 'monitoring.type.' + sensor.type | translate }}</td>
+              <td>{{ sensor.lowerLimit }}–{{ sensor.upperLimit }} {{ sensor.unit }}</td>
+              <td><span class="chip chip-dot" [class]="sensor.status === 'active' ? 'chip-success' : 'chip-danger'">{{ 'monitoring.sensor-status.' + sensor.status | translate }}</span></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="muted">{{ 'monitoring.equipment.no-sensors' | translate }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <form class="card side" [formGroup]="form" (ngSubmit)="registerSensor()" novalidate>
+      <h2>{{ 'monitoring.equipment.register-sensor' | translate }}</h2>
+      <p class="small muted">{{ 'monitoring.equipment.register-text' | translate }}</p>
+      <label class="field" [class.invalid]="(form.controls.deviceId.invalid && form.controls.deviceId.touched) || duplicateDevice()">
+        <span>{{ 'monitoring.equipment.device-id' | translate }} *</span>
+        <input type="text" formControlName="deviceId" placeholder="tb-7f3a2c91-coat02-temp" (input)="duplicateDevice.set(false)">
+        @if (form.controls.deviceId.invalid && form.controls.deviceId.touched) { <small class="field-error">▲ {{ 'monitoring.equipment.device-error' | translate }}</small> }
+        @if (duplicateDevice()) { <small class="field-error">▲ {{ 'monitoring.equipment.device-duplicate' | translate }}</small> }
+      </label>
+      <label class="field">
+        <span>{{ 'monitoring.equipment.type' | translate }} *</span>
+        <select formControlName="type">
+          @for (type of sensorTypes; track type) { <option [value]="type">{{ 'monitoring.type.' + type | translate }}</option> }
+        </select>
+      </label>
+      <label class="field">
+        <span>{{ 'monitoring.equipment.equipment' | translate }} *</span>
+        <select formControlName="equipmentCode">
+          @for (item of store.equipment(); track item.id) { <option [value]="item.code">{{ item.code }} · {{ item.name }}</option> }
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary btn-block">{{ 'monitoring.equipment.register-sensor' | translate }}</button>
+    </form>
+  </div>
+
+  @if (attention(); as item) {
+    <div class="grid-2">
+      <section class="card side">
+        <h2>{{ 'monitoring.equipment.calibration' | translate }} · {{ item.code }}</h2>
+        <p class="small muted">{{ 'monitoring.equipment.calibration-due' | translate }} {{ item.calibrationDue | date: 'MMM dd, yyyy' }}</p>
+        <span class="chip chip-dot" [class]="calibrationTone(item.calibrationStatus)">{{ 'monitoring.calibration.' + item.calibrationStatus | translate }}</span>
+        <p>{{ 'monitoring.equipment.calibration-text' | translate }}</p>
+        <button type="button" class="btn btn-primary" (click)="store.recordCalibration(item)">{{ 'monitoring.equipment.record-calibration' | translate }}</button>
+      </section>
+      <section class="card side">
+        <h2>{{ 'monitoring.equipment.maintenance' | translate }} · {{ item.code }}</h2>
+        <p class="small muted">{{ 'monitoring.equipment.next-maintenance' | translate }}: {{ item.nextMaintenance | date: 'MMM dd, yyyy' }} · {{ 'monitoring.equipment.every-90' | translate }}</p>
+        @if (item.workOrder) { <span class="chip chip-dot chip-warning">{{ item.workOrder }} · {{ item.maintenanceOwner }}</span> }
+        <p>{{ 'monitoring.equipment.maintenance-text' | translate }}</p>
+        <button type="button" class="btn btn-primary" (click)="store.recordMaintenance(item)">{{ 'monitoring.equipment.record-maintenance' | translate }}</button>
+      </section>
+    </div>
+  }
+</section>
