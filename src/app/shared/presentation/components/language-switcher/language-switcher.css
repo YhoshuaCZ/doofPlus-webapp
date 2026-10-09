@@ -1,0 +1,27 @@
+.switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.switch button {
+  padding: 6px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.switch button.active {
+  background: var(--teal);
+  color: #fff;
+}
+
+.switch.dark {
+  border-color: var(--teal);
+}

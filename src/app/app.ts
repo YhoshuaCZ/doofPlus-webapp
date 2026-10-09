@@ -1,13 +1,13 @@
 import {Component, inject, signal} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {Layout} from './shared/presentation/components/layout/layout';
+import {RouterOutlet} from '@angular/router';
 
 /**
- * Root component that bootstraps localization and the application shell.
+ * Root component that bootstraps localization and hosts the routed shells.
  */
 @Component({
   selector: 'app-root',
-  imports: [Layout],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -27,6 +27,6 @@ export class App {
    */
   constructor() {
     this.translate.addLangs(['en', 'es']);
-    this.translate.use('en');
+    this.translate.use(localStorage.getItem('language') ?? 'en');
   }
 }

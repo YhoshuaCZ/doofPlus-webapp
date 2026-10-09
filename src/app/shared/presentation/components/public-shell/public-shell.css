@@ -1,0 +1,75 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.public-header {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: 16px 64px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+
+.brand img {
+  display: block;
+  height: 44px;
+}
+
+.back {
+  font-size: 14px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.public-main {
+  flex: 1;
+  padding: 48px 64px;
+}
+
+.public-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 64px;
+  background: var(--navy);
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.public-footer nav {
+  display: flex;
+  gap: 36px;
+}
+
+.public-footer a {
+  color: #5eead4;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+@media (max-width: 800px) {
+  .public-header,
+  .public-main,
+  .public-footer {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .public-header {
+    gap: 16px;
+  }
+
+  .back {
+    display: none;
+  }
+
+  .public-footer {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

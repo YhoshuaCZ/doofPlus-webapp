@@ -1,0 +1,16 @@
+<header class="public-header">
+  <a [href]="landingUrl" class="brand"><img src="/doofplus-logo.png" alt="DoofPlus"></a>
+  <a [href]="landingUrl" class="back">← {{ 'shell.back-to-doofplus' | translate }}</a>
+  <span class="spacer"></span>
+  <app-language-switcher/>
+</header>
+<main class="public-main">
+  <router-outlet/>
+</main>
+<footer class="public-footer">
+  <p>Copyright © 2026 IngesCompany. {{ 'shell.rights' | translate }}</p>
+  <nav>
+    <a [href]="landingUrl + 'terms.html'">{{ 'shell.terms' | translate }}</a>
+    <a [href]="landingUrl + 'privacy.html'">{{ 'shell.privacy' | translate }}</a>
+  </nav>
+</footer>

@@ -4,17 +4,17 @@
 @include mat.core();
 
 :root {
-  @include mat.toolbar-overrides((container-background-color: slategray, container-text-color: white));
+  @include mat.toolbar-overrides((container-background-color: #0f172a, container-text-color: white));
 }
 
 html {
   height: 100%;
   @include mat.theme((
     color: (
-      primary: mat.$azure-palette,
+      primary: mat.$cyan-palette,
       tertiary: mat.$blue-palette,
     ),
-    typography: Roboto,
+    typography: Inter,
     density: 0,
   ));
 }

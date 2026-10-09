@@ -1,1 +1,9 @@
-
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 32px;
+}

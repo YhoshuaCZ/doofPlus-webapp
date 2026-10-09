@@ -1,52 +1,42 @@
-import {Component, inject} from '@angular/core';
-import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {Component, inject, input, signal} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 
 /**
- * Switches the active locale used by the translation service.
+ * Switches the active locale used by the translation service (EN / ES pill).
  */
 @Component({
   selector: 'app-language-switcher',
-  imports: [
-    MatButtonToggleModule
-  ],
   templateUrl: './language-switcher.html',
   styleUrl: './language-switcher.css'
 })
 export class LanguageSwitcher {
   /**
-   * The currently selected language code.
+   * Visual variant: light for public pages, dark for the workspace top bar.
    */
-  protected currentLang = 'en';
-
-  /**
-   * List of available language codes.
-   */
-  protected languages: string[] ;
+  readonly variant = input<'light' | 'dark'>('light');
 
   /**
    * Translation service instance.
    */
-  private translate: TranslateService;
+  private readonly translate = inject(TranslateService);
 
   /**
-   * Creates an instance of LanguageSwitcherComponent.
-   * Initializes the current language from the translation service.
+   * List of available language codes.
    */
-  constructor() {
-    this.translate = inject(TranslateService);
-    this.currentLang = this.translate.getCurrentLang() ?? 'en';
-    this.languages = [...this.translate.getLangs()];
-  }
+  protected readonly languages = this.translate.getLangs();
 
   /**
-   * Changes the application's current language.
-   * Updates both the translation service and the component's local state.
-   *
-   * @param language - The language code to switch to (e.g., 'en', 'es')
+   * The currently selected language code.
+   */
+  protected readonly currentLang = signal(this.translate.getCurrentLang() ?? 'en');
+
+  /**
+   * Changes the application's current language and remembers it for the next visit.
+   * @param language - The language code to switch to (e.g., 'en', 'es').
    */
   useLanguage = (language: string) => {
     this.translate.use(language);
-    this.currentLang = language;
+    this.currentLang.set(language);
+    localStorage.setItem('language', language);
   };
 }

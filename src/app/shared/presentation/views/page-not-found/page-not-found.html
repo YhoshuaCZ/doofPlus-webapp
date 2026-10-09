@@ -1,6 +1,5 @@
-<div class="container-with-spacing">
+<section class="card not-found">
   <h1>{{ 'page-not-found.title' | translate }}</h1>
-  <div [innerHTML]="'page-not-found.content' | translate: { invalid_path: invalidPath }"></div>
-</div>
-<button mat-button (click)="navigateToHome()">{{ 'page-not-found.go-home' | translate }}</button>
-
+  <p class="muted" [innerHTML]="'page-not-found.content' | translate: { invalid_path: invalidPath }"></p>
+  <button type="button" class="btn btn-primary" (click)="navigateToHome()">{{ 'page-not-found.go-home' | translate }}</button>
+</section>

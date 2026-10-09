@@ -1,24 +1,13 @@
 {
-  "option": {
-    "home": "Inicio",
-    "about": "Acerca de"
-  },
-  "about": {
-    "title": "Acerca de nosotros",
-    "content": "DoofPlus es una plataforma de gestión de calidad farmacéutica desarrollada por IngesCompany."
-  },
-  "home": {
-    "title": "Bienvenido",
-    "content": "Bienvenido a DoofPlus."
+  "shell": {
+    "back-to-doofplus": "Volver a DoofPlus",
+    "rights": "Todos los derechos reservados.",
+    "terms": "Términos del servicio",
+    "privacy": "Política de privacidad"
   },
   "page-not-found": {
     "title": "Página no encontrada",
-    "content": "La ruta <strong>{{ invalidPath }}</strong> es inválida.",
-    "go-home": "Ir a Inicio"
-  },
-  "footer": {
-    "rights": "Todos los derechos reservados.",
-    "powered-by": "Desarrollado con",
-    "and": "y"
+    "content": "La ruta <strong>{{ invalid_path }}</strong> no es válida.",
+    "go-home": "Ir a iniciar sesión"
   }
 }

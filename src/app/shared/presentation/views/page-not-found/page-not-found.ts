@@ -1,6 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MatButton} from '@angular/material/button';
 import {TranslatePipe} from '@ngx-translate/core';
 
 /**
@@ -8,7 +7,7 @@ import {TranslatePipe} from '@ngx-translate/core';
  */
 @Component({
   selector: 'app-page-not-found',
-  imports: [MatButton, TranslatePipe],
+  imports: [TranslatePipe],
   templateUrl: './page-not-found.html',
   styleUrl: './page-not-found.css'
 })
@@ -36,10 +35,10 @@ export class PageNotFound implements OnInit {
   }
 
   /**
-   * Navigates to the home page.
+   * Navigates to the environment selection of the sign-in.
    */
   protected navigateToHome() {
-    this.router.navigate(['home']).then();
+    this.router.navigate(['/sign-in']).then();
   }
 
 }

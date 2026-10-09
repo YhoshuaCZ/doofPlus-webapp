@@ -1,24 +1,13 @@
 {
-  "option": {
-    "home": "Home",
-    "about": "About Us"
-  },
-  "about": {
-    "title": "About us",
-    "content": "DoofPlus is a pharmaceutical quality management platform developed by IngesCompany."
-  },
-  "home": {
-    "title": "Welcome",
-    "content": "Welcome to DoofPlus."
+  "shell": {
+    "back-to-doofplus": "Back to DoofPlus",
+    "rights": "All rights reserved.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
   },
   "page-not-found": {
     "title": "Page not found",
     "content": "The path <strong>{{ invalid_path }}</strong> is not valid.",
-    "go-home": "Go Home"
-  },
-  "footer": {
-    "rights": "All rights reserved.",
-    "powered-by": "Powered by",
-    "and": "and"
+    "go-home": "Go to sign in"
   }
 }
