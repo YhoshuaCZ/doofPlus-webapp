@@ -1,0 +1,57 @@
+<aside class="sidebar" [class.open]="sidebarOpen()">
+  <a [routerLink]="navigation[0].link" class="brand"><img src="/doofplus-logo.png" alt="DoofPlus"></a>
+  @if (user(); as current) {
+    <div class="organization">
+      <strong>{{ current.organizationName }}</strong>
+      <span>{{ current.plant }} · {{ 'environments.' + environment + '.short' | translate }}</span>
+      <span class="privilege">{{ 'privileges.' + current.privilege | translate }}</span>
+    </div>
+  }
+  <p class="section-title">{{ 'shell.workspace' | translate }}</p>
+  <nav (click)="sidebarOpen.set(false)">
+    @for (option of navigation; track option.link) {
+      <a [routerLink]="option.link" routerLinkActive="active">{{ option.label | translate }}</a>
+    }
+  </nav>
+  <a class="help" [href]="landingUrl" target="_blank" rel="noopener">{{ 'shell.help' | translate }} ↗</a>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <button type="button" class="menu-toggle" (click)="sidebarOpen.set(!sidebarOpen())" [attr.aria-label]="'shell.menu' | translate">☰</button>
+    <input type="search" class="search" [placeholder]="'shell.search' | translate" [attr.aria-label]="'shell.search' | translate">
+    <span class="spacer"></span>
+    <app-language-switcher variant="dark"/>
+    @if (user(); as current) {
+      <div class="user">
+        <button type="button" class="user-button" (click)="menuOpen.set(!menuOpen())" [attr.aria-expanded]="menuOpen()">
+          <span class="avatar">{{ current.initials }}</span>
+          <span class="user-text">
+            <strong>{{ current.fullName }}</strong>
+            <span>{{ 'roles.' + current.role | translate }}</span>
+          </span>
+        </button>
+        @if (menuOpen()) {
+          <div class="user-menu" (click)="menuOpen.set(false)">
+            <a [routerLink]="'/' + environment + '/profile'">{{ 'shell.profile' | translate }}</a>
+            <button type="button" (click)="signOut()">{{ 'shell.sign-out' | translate }}</button>
+          </div>
+        }
+      </div>
+    }
+  </header>
+
+  <main class="content">
+    <router-outlet/>
+  </main>
+
+  <footer class="footer">
+    @if (user(); as current) {
+      <p>{{ current.organizationName }} · {{ current.plant }} · {{ today() }} · {{ 'shell.utc' | translate }} · {{ 'shell.role-based' | translate }}</p>
+    }
+    <nav>
+      <a [href]="landingUrl + 'terms.html'">{{ 'shell.terms' | translate }}</a>
+      <a [href]="landingUrl + 'privacy.html'">{{ 'shell.privacy' | translate }}</a>
+    </nav>
+  </footer>
+</div>
