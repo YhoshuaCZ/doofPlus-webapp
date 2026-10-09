@@ -6,6 +6,7 @@ import {iamGuard} from './iam/infrastructure/iam.guard';
 const pageNotFound = () => import('./shared/presentation/views/page-not-found/page-not-found').then(m => m.PageNotFound);
 const iamRoutes = () => import('./iam/presentation/iam.routes').then(m => m.iamRoutes);
 const iamAdministrationRoutes = () => import('./iam/presentation/iam.routes').then(m => m.iamAdministrationRoutes);
+const subscriptionsRoutes = () => import('./subscriptions/presentation/subscriptions.routes').then(m => m.subscriptionsRoutes);
 const baseTitle = 'DoofPlus';
 
 /**
@@ -28,6 +29,7 @@ export const routes: Routes = [
   ]},
   { path: 'administration', component: WorkspaceShell, canActivate: [iamGuard], data: { environment: 'administration' }, children: [
     { path: '', loadChildren: iamAdministrationRoutes },
+    { path: '', loadChildren: subscriptionsRoutes },
     notFound
   ]},
   { path: '',               component: PublicShell, children: [notFound] }

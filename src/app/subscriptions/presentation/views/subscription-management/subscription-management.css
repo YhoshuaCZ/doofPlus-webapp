@@ -1,0 +1,68 @@
+.stat .stat-value {
+  font-size: 28px;
+}
+
+.review,
+.method {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 24px;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 0;
+}
+
+.credit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 13px;
+}
+
+.credit-card strong {
+  font-size: 15px;
+}
+
+.muted-label {
+  color: var(--muted);
+}
+
+.state {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 8px;
+}
+
+.declined { border-color: var(--danger-border); background: var(--danger-bg); color: var(--danger-dark); }
+.upgrades { border-color: #bfdbfe; background: #eff6ff; color: var(--blue); }
+.reminder { border-color: var(--warning-border); background: var(--warning-bg); color: var(--warning); }

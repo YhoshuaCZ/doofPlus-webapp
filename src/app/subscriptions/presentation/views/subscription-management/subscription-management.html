@@ -1,0 +1,147 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.administration.short' | translate, 'nav.subscription-payments' | translate]"
+    [title]="'nav.subscription-payments' | translate"
+    [subtitle]="'subscriptions.subtitle' | translate"/>
+
+  @if (store.subscription(); as subscription) {
+    <div class="stats">
+      <div class="stat">
+        <p class="stat-label">{{ 'subscriptions.current-plan' | translate }}</p>
+        <p class="stat-value">{{ store.currentPlan()?.name }}</p>
+        <span class="chip chip-teal">{{ 'subscriptions.cycle.' + subscription.billingCycle | translate }}</span>
+      </div>
+      <div class="stat">
+        <p class="stat-label">{{ 'subscriptions.active-users' | translate }}</p>
+        <p class="stat-value">{{ iamStore.users().length }}</p>
+        <p class="stat-note">
+          @if (store.currentPlan()?.userLimit) {
+            {{ 'subscriptions.user-limit' | translate: {limit: store.currentPlan()?.userLimit} }}
+          } @else {
+            {{ 'subscriptions.unlimited' | translate }}
+          }
+        </p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">{{ 'subscriptions.amount' | translate }}</p>
+        <p class="stat-value">{{ store.currentAmount() | currency: 'USD':'US$':'1.0-0' }}</p>
+        <p class="stat-note">{{ 'subscriptions.per.' + subscription.billingCycle | translate }} · {{ 'subscriptions.taxes' | translate }}</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">{{ 'subscriptions.next-invoice' | translate }}</p>
+        <p class="stat-value">{{ subscription.nextInvoiceDate | date: 'MMM dd' }}</p>
+        <p class="stat-note">{{ (subscription.autoRenew ? 'subscriptions.auto-renew' : 'subscriptions.no-auto-renew') | translate }}</p>
+      </div>
+    </div>
+
+    @if (subscription.paymentState === 'declined') {
+      <div class="alert alert-danger" role="alert">
+        <div>
+          <strong>{{ 'subscriptions.declined-title' | translate }}</strong>
+          <p>{{ 'subscriptions.declined-text' | translate }}</p>
+        </div>
+        <button type="button" class="btn btn-danger btn-sm" (click)="store.retryPayment()" [disabled]="store.loading()">
+          {{ 'subscriptions.retry' | translate }} →
+        </button>
+      </div>
+    }
+
+    <div class="columns">
+      <div class="stack">
+        <section class="card">
+          <div class="card-header"><h2>{{ 'subscriptions.billing-history' | translate }}</h2></div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>{{ 'subscriptions.invoice' | translate }}</th>
+                <th>{{ 'subscriptions.date' | translate }}</th>
+                <th>{{ 'subscriptions.amount-column' | translate }}</th>
+                <th>{{ 'subscriptions.status' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invoice of store.invoices(); track invoice.id) {
+                <tr>
+                  <td><strong>{{ invoice.number }}</strong></td>
+                  <td>{{ invoice.issuedAt | date: 'MMM dd, yyyy' }}</td>
+                  <td>{{ invoice.amount | currency: 'USD':'US$' }}</td>
+                  <td>
+                    <span class="chip" [class]="invoice.status === 'approved' ? 'chip-success' : 'chip-danger'">
+                      {{ 'subscriptions.payment.' + invoice.status | translate }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="4" class="muted">{{ 'subscriptions.no-invoices' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card review">
+          <h2>{{ 'subscriptions.review' | translate }}</h2>
+          <div class="options">
+            <label class="field">
+              <span>{{ 'subscriptions.plan' | translate }}</span>
+              <select (change)="proposedPlanKey.set($any($event.target).value)">
+                @for (plan of store.plans(); track plan.id) {
+                  <option [value]="plan.key" [selected]="plan.key === proposedPlan()?.key">{{ plan.name }}</option>
+                }
+              </select>
+            </label>
+            <label class="field">
+              <span>{{ 'subscriptions.billing-cycle' | translate }}</span>
+              <select (change)="proposedCycle.set($any($event.target).value)">
+                <option value="monthly" [selected]="cycle() === 'monthly'">{{ 'subscriptions.cycle.monthly' | translate }}</option>
+                <option value="annual" [selected]="cycle() === 'annual'">{{ 'subscriptions.cycle.annual' | translate }}</option>
+              </select>
+            </label>
+          </div>
+          @if (hasChange()) {
+            <span class="chip chip-warning">{{ 'subscriptions.proposed-change' | translate }}</span>
+            <dl>
+              <dt>{{ 'subscriptions.current' | translate }}</dt>
+              <dd>{{ store.currentPlan()?.name }} · {{ 'subscriptions.cycle.' + subscription.billingCycle | translate }} · {{ store.currentAmount() | currency: 'USD':'US$':'1.0-0' }}</dd>
+              <dt>{{ 'subscriptions.proposed' | translate }}</dt>
+              <dd><strong>{{ proposedPlan()?.name }} · {{ 'subscriptions.cycle.' + cycle() | translate }} · {{ proposedAmount() | currency: 'USD':'US$':'1.0-0' }}</strong></dd>
+              <dt>{{ 'subscriptions.effective' | translate }}</dt>
+              <dd>{{ subscription.nextInvoiceDate | date: 'MMM dd, yyyy' }} · {{ 'subscriptions.no-charge' | translate }}</dd>
+            </dl>
+            <div class="row">
+              <button type="button" class="btn btn-primary" (click)="confirmChange()" [disabled]="store.loading()">{{ 'subscriptions.confirm' | translate }}</button>
+              <button type="button" class="btn" (click)="cancelChange()">{{ 'subscriptions.cancel' | translate }}</button>
+            </div>
+          } @else {
+            <p class="muted">{{ 'subscriptions.no-change' | translate }}</p>
+          }
+          <p class="small muted">{{ 'subscriptions.cancellation' | translate }}</p>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card method">
+          <h2>{{ 'subscriptions.payment-method' | translate }}</h2>
+          @if (subscription.cardLast4) {
+            <div class="credit-card">
+              <strong>•••• •••• •••• {{ subscription.cardLast4 }}</strong>
+              <span>{{ subscription.cardBrand }} · Exp {{ subscription.cardExpiry }} · Niubiz</span>
+              <span>{{ iamStore.currentUser()?.organizationName }}</span>
+            </div>
+          } @else {
+            <p class="muted">{{ 'subscriptions.no-card' | translate }}</p>
+          }
+          <p class="overline muted-label">{{ 'subscriptions.billing-contact' | translate }}</p>
+          <p>{{ subscription.billingEmail }}</p>
+        </section>
+        <section class="card method">
+          <h2>{{ 'subscriptions.states' | translate }}</h2>
+          <div class="state declined"><strong>{{ 'subscriptions.state-declined' | translate }}</strong><p class="small">{{ 'subscriptions.state-declined-text' | translate }}</p></div>
+          <div class="state upgrades"><strong>{{ 'subscriptions.state-upgrades' | translate }}</strong><p class="small">{{ 'subscriptions.state-upgrades-text' | translate }}</p></div>
+          <div class="state reminder"><strong>{{ 'subscriptions.state-reminder' | translate }}</strong><p class="small">{{ 'subscriptions.state-reminder-text' | translate: {email: subscription.billingEmail} }}</p></div>
+        </section>
+      </aside>
+    </div>
+  } @else if (!store.loading()) {
+    <p class="muted">{{ 'subscriptions.none' | translate }}</p>
+  }
+</section>
