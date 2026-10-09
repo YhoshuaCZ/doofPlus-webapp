@@ -37,6 +37,10 @@ export interface UserResource extends BaseResource {
    */
   status: string;
   /**
+   * Identifier of the organization the user belongs to.
+   */
+  organizationId: number;
+  /**
    * Name of the laboratory organization.
    */
   organizationName: string;

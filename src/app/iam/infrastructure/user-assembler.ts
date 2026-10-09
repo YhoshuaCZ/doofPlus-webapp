@@ -29,6 +29,7 @@ export class UserAssembler implements BaseAssembler<User, UserResource, UsersRes
       environment: resource.environment,
       facility: resource.facility,
       status: resource.status,
+      organizationId: resource.organizationId,
       organizationName: resource.organizationName,
       plant: resource.plant,
       privilege: resource.privilege
@@ -49,6 +50,7 @@ export class UserAssembler implements BaseAssembler<User, UserResource, UsersRes
       environment: entity.environment,
       facility: entity.facility,
       status: entity.status,
+      organizationId: entity.organizationId,
       organizationName: entity.organizationName,
       plant: entity.plant,
       privilege: entity.privilege

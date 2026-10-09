@@ -45,6 +45,11 @@ export class User implements BaseEntity {
   #status: string;
 
   /**
+   * Identifier of the organization the user belongs to.
+   */
+  #organizationId: number;
+
+  /**
    * Name of the laboratory organization.
    */
   #organizationName: string;
@@ -63,7 +68,7 @@ export class User implements BaseEntity {
    * Creates a new user.
    * @param user - Initial values of the user.
    */
-  constructor(user: { id: number; fullName: string; initials: string; email: string; role: string; environment: string; facility: string; status: string; organizationName: string; plant: string; privilege: string }) {
+  constructor(user: { id: number; fullName: string; initials: string; email: string; role: string; environment: string; facility: string; status: string; organizationId: number; organizationName: string; plant: string; privilege: string }) {
     this.#id = user.id;
     this.#fullName = user.fullName;
     this.#initials = user.initials;
@@ -72,6 +77,7 @@ export class User implements BaseEntity {
     this.#environment = user.environment;
     this.#facility = user.facility;
     this.#status = user.status;
+    this.#organizationId = user.organizationId;
     this.#organizationName = user.organizationName;
     this.#plant = user.plant;
     this.#privilege = user.privilege;
@@ -100,6 +106,9 @@ export class User implements BaseEntity {
 
   get status(): string { return this.#status; }
   set status(value: string) { this.#status = value; }
+
+  get organizationId(): number { return this.#organizationId; }
+  set organizationId(value: number) { this.#organizationId = value; }
 
   get organizationName(): string { return this.#organizationName; }
   set organizationName(value: string) { this.#organizationName = value; }
