@@ -1,0 +1,57 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'nav.quality-indicators' | translate]"
+    [title]="'nav.quality-indicators' | translate"
+    [subtitle]="'quality.indicators.subtitle' | translate">
+    <button type="button" class="btn btn-primary" (click)="export()">{{ 'quality.indicators.export' | translate }}</button>
+  </app-page-header>
+
+  <div class="stats">
+    <div class="stat"><p class="stat-label">{{ 'quality.indicators.complete' | translate }}</p>
+      <p class="stat-value">{{ (closedBatches - store.gaps().length) * 100 / closedBatches }} %</p>
+      <p class="stat-note">{{ 'quality.indicators.complete-note' | translate: {done: closedBatches - store.gaps().length, total: closedBatches} }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.indicators.missing' | translate }}</p><p class="stat-value">{{ store.gaps().length }}</p>
+      <p class="stat-note">{{ 'quality.indicators.missing-note' | translate }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.indicators.closed' | translate }}</p><p class="stat-value">{{ closedDeviations() }}</p>
+      <p class="stat-note">{{ 'quality.indicators.closed-note' | translate }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.indicators.recurrent' | translate }}</p><p class="stat-value">{{ recurrent().length }}</p>
+      <p class="stat-note">{{ 'quality.indicators.recurrent-note' | translate }}</p></div>
+  </div>
+
+  <div class="grid-2">
+    <section class="card">
+      <div class="card-header"><div><h2>{{ 'quality.indicators.gaps' | translate }}</h2><p class="small muted">{{ 'quality.indicators.gaps-text' | translate }}</p></div></div>
+      <table class="table">
+        <thead><tr><th>{{ 'quality.results.batch' | translate }}</th><th>{{ 'manufacturing.products.product' | translate }}</th><th>{{ 'quality.indicators.missing-records' | translate }}</th></tr></thead>
+        <tbody>
+          @for (gap of store.gaps(); track gap.id) {
+            <tr class="clickable" [class.highlight]="gap.batchCode === selectedGap()" (click)="selectedGap.set(gap.batchCode)">
+              <td><strong>{{ gap.batchCode }}</strong></td><td>{{ gap.product }}</td><td>{{ gap.missingRecord }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @for (gap of store.gaps(); track gap.id) {
+        @if (gap.batchCode === selectedGap()) { <p class="card-body detail">{{ gap.batchCode }} · {{ gap.detail }}</p> }
+      }
+    </section>
+
+    <section class="card panel">
+      <h2>{{ 'quality.indicators.by-cause' | translate }}</h2>
+      <p class="small muted">{{ 'quality.indicators.by-cause-text' | translate }}</p>
+      <div class="heat" [style.grid-template-columns]="'180px repeat(' + months().length + ', 1fr)'">
+        <span></span>
+        @for (month of months(); track month) { <span class="month">{{ month }}</span> }
+        @for (cause of causes(); track cause) {
+          <span class="cause">{{ cause }}</span>
+          @for (month of months(); track month) {
+            <span class="cell"><i [style.height.px]="4 + countOf(cause, month) * 8" [class.hot]="recurrent().includes(cause)"></i><small>{{ countOf(cause, month) }}</small></span>
+          }
+        }
+      </div>
+      @for (cause of recurrent(); track cause) {
+        <p class="small danger">{{ 'quality.indicators.recurrent-text' | translate: {cause: cause, count: totalOf(cause)} }}</p>
+      }
+    </section>
+  </div>
+</section>

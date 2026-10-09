@@ -1,0 +1,70 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'nav.tasks' | translate]"
+    [title]="'nav.tasks' | translate"
+    [subtitle]="'quality.tasks.subtitle' | translate"/>
+
+  <div class="stats">
+    <div class="stat"><p class="stat-label">{{ 'quality.tasks.my-open' | translate }}</p><p class="stat-value">{{ myTasks().length }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.tasks.team-open' | translate }}</p><p class="stat-value">{{ store.tasks().length }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.tasks.approvals' | translate }}</p><p class="stat-value">{{ approvals() }}</p><p class="stat-note">{{ 'quality.tasks.approvals-note' | translate }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.tasks.comments' | translate }}</p><p class="stat-value">{{ comments().length }}</p><p class="stat-note">{{ recordCode() }}</p></div>
+  </div>
+
+  <div class="columns">
+    <section class="card">
+      <div class="card-header"><div><h2>{{ 'quality.tasks.inbox' | translate }}</h2><p class="small muted">{{ 'quality.tasks.inbox-text' | translate }}</p></div></div>
+      <table class="table">
+        <thead><tr><th>{{ 'quality.tasks.task-record' | translate }}</th><th>{{ 'manufacturing.batches.owner' | translate }}</th>
+          <th>{{ 'quality.capa.due' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th><th></th></tr></thead>
+        <tbody>
+          @for (task of store.tasks(); track task.id) {
+            <tr [class.highlight]="task.recordCode.startsWith(recordCode())">
+              <td><strong>{{ task.title }}</strong><span class="sub">{{ task.recordCode }} · {{ task.detail }}</span></td>
+              <td>{{ task.owner }}</td>
+              <td>{{ task.dueAt | date: 'MMM dd' }}</td>
+              <td><span class="chip chip-dot" [class]="toneOf(task.status)">{{ 'quality.task-status.' + task.status | translate }}</span></td>
+              <td><button type="button" class="btn btn-outline btn-sm" (click)="recordCode.set(task.recordCode.split(' ')[0])">{{ 'quality.tasks.discuss' | translate }}</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <form class="card panel" [formGroup]="form" (ngSubmit)="assign()" novalidate>
+      <h2>{{ 'quality.tasks.new' | translate }}</h2>
+      <p class="small muted">{{ 'quality.tasks.new-text' | translate }}</p>
+      <label class="field" [class.invalid]="form.controls.title.invalid && form.controls.title.touched"><span>{{ 'quality.tasks.title' | translate }} *</span><input type="text" formControlName="title"></label>
+      <label class="field" [class.invalid]="form.controls.recordCode.invalid && form.controls.recordCode.touched"><span>{{ 'quality.tasks.record' | translate }} *</span><input type="text" formControlName="recordCode"></label>
+      <label class="field" [class.invalid]="form.controls.owner.invalid && form.controls.owner.touched"><span>{{ 'manufacturing.batches.owner' | translate }} *</span>
+        <select formControlName="owner"><option value="">—</option>
+          @for (name of ['María México', 'Lucía Paredes', 'Elena Paz', 'Alberto Valle', 'Jorge Salas']; track name) { <option [value]="name">{{ name }}</option> }
+        </select></label>
+      <label class="field" [class.invalid]="form.controls.dueAt.invalid && form.controls.dueAt.touched"><span>{{ 'quality.tasks.due' | translate }} *</span><input type="datetime-local" formControlName="dueAt"></label>
+      <button type="submit" class="btn btn-primary btn-block">{{ 'quality.tasks.assign' | translate }}</button>
+    </form>
+  </div>
+
+  <div class="columns">
+    <section class="card panel">
+      <h2>{{ 'quality.tasks.discussion' | translate }} · {{ recordCode() }}</h2>
+      <p class="small muted">{{ 'quality.tasks.discussion-text' | translate }}</p>
+      @for (item of comments(); track item.id) {
+        <div class="comment"><span class="avatar">{{ item.initials }}</span>
+          <div><p><strong>{{ item.author }}</strong> <span class="small muted">· {{ item.postedAt | date: 'MMM dd, HH:mm' : 'UTC' }} UTC</span></p><p>{{ item.text }}</p></div></div>
+      } @empty {
+        <p class="muted">{{ 'quality.tasks.no-comments' | translate }}</p>
+      }
+      <div class="row">
+        <input class="comment-input" type="text" [formControl]="comment" (keyup.enter)="send()" [placeholder]="'quality.tasks.comment-placeholder' | translate">
+        <button type="button" class="btn btn-primary btn-sm" (click)="send()">{{ 'quality.tasks.send' | translate }}</button>
+      </div>
+    </section>
+    <section class="card panel">
+      <h2>{{ 'quality.tasks.controls' | translate }}</h2>
+      <strong>{{ 'quality.tasks.record-access' | translate }}</strong><p class="small muted">{{ 'quality.tasks.record-access-text' | translate }}</p>
+      <strong>{{ 'quality.tasks.attribution' | translate }}</strong><p class="small muted">{{ 'quality.tasks.attribution-text' | translate }}</p>
+      <strong>{{ 'quality.tasks.not-approval' | translate }}</strong><p class="small muted">{{ 'quality.tasks.not-approval-text' | translate }}</p>
+    </section>
+  </div>
+</section>

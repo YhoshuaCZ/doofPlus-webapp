@@ -1,0 +1,58 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'nav.audit-trail' | translate]"
+    [title]="'nav.audit-trail' | translate"
+    [subtitle]="'quality.trail.subtitle' | translate">
+    <button type="button" class="btn btn-primary" (click)="exportCsv()">{{ 'quality.trail.export' | translate }}</button>
+  </app-page-header>
+
+  <div class="card filters">
+    <input type="search" [value]="recordFilter()" (input)="recordFilter.set($any($event.target).value)" [placeholder]="'quality.trail.record-filter' | translate">
+    <select (change)="actorFilter.set($any($event.target).value)">
+      <option value="">{{ 'quality.trail.all-actors' | translate }}</option>
+      @for (actor of actors(); track actor) { <option [value]="actor" [selected]="actor === actorFilter()">{{ actor }}</option> }
+    </select>
+    <button type="button" class="btn btn-sm" (click)="clearFilters()">{{ 'quality.trail.clear' | translate }}</button>
+    <span class="spacer"></span>
+    <span class="muted small">{{ 'shell.utc' | translate }}</span>
+  </div>
+
+  <section class="card">
+    <div class="card-header"><h2>{{ 'quality.trail.log' | translate }}</h2><span class="chip chip-teal">{{ 'quality.trail.events' | translate: {count: visible().length} }}</span></div>
+    <table class="table">
+      <thead><tr><th>UTC</th><th>{{ 'quality.trail.actor' | translate }}</th><th>{{ 'quality.trail.event' | translate }}</th>
+        <th>{{ 'quality.trail.record' | translate }}</th><th>{{ 'quality.trail.result' | translate }}</th></tr></thead>
+      <tbody>
+        @for (event of visible(); track event.id) {
+          <tr class="clickable" [class.blocked]="event.result === 'Blocked'" [class.highlight]="event.eventCode === selected()?.eventCode" (click)="selectedCode.set(event.eventCode)">
+            <td>{{ event.occurredAt | date: 'MMM dd · HH:mm' : 'UTC' }}</td>
+            <td><strong>{{ event.actor }}</strong><span class="sub">{{ ('roles.' + event.actorRole | translate) }}</span></td>
+            <td>{{ event.event }}</td>
+            <td class="code">{{ event.record }}</td>
+            <td><span class="chip" [class]="event.result === 'Blocked' ? 'chip-danger' : 'chip-teal'">{{ event.result }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  @if (selected(); as event) {
+    <div class="columns">
+      <section class="card">
+        <div class="card-header"><div><h2>{{ 'quality.trail.selected' | translate }} · {{ event.event }}</h2>
+          <p class="small muted">{{ event.eventCode }} · {{ event.occurredAt | date: 'HH:mm' : 'UTC' }} UTC</p></div></div>
+        <table class="table">
+          <thead><tr><th>{{ 'quality.trail.field' | translate }}</th><th>{{ 'quality.trail.before' | translate }}</th>
+            <th>{{ 'quality.trail.after' | translate }}</th><th>{{ 'quality.trail.reason' | translate }}</th></tr></thead>
+          <tbody><tr><td>{{ event.field || '—' }}</td><td>{{ event.before || '—' }}</td><td>{{ event.after || '—' }}</td><td>{{ event.reason || '—' }}</td></tr></tbody>
+        </table>
+      </section>
+      <section class="card panel">
+        <h2>{{ 'quality.trail.provenance' | translate }}</h2>
+        <span class="chip chip-teal">{{ 'quality.trail.immutable' | translate }}</span>
+        <p class="label">{{ 'quality.trail.event-id' | translate }}</p><p>{{ event.eventCode }} · {{ event.occurredAt | date: 'MMM dd, yyyy · HH:mm:ss' : 'UTC' }} UTC</p>
+        <p class="label">{{ 'quality.trail.retention' | translate }}</p><p class="small muted">{{ 'quality.trail.retention-text' | translate }}</p>
+      </section>
+    </div>
+  }
+</section>

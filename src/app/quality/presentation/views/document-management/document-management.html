@@ -1,0 +1,75 @@
+<section class="page">
+  @if (latest(); as doc) {
+    <app-page-header
+      [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'nav.quality-documents' | translate]"
+      [title]="'nav.quality-documents' | translate"
+      [subtitle]="doc.code + ' · ' + doc.title + ' · ' + ('quality.documents.controlled' | translate)">
+      <select class="picker" (change)="code.set($any($event.target).value); signResult.set(null)">
+        @for (item of codes(); track item) { <option [value]="item" [selected]="item === code()">{{ item }}</option> }
+      </select>
+    </app-page-header>
+
+    @if (doc.status === 'in-review') {
+      <div class="alert alert-info">
+        <div>
+          <strong>{{ 'quality.documents.awaiting' | translate: {version: doc.version} }}</strong>
+          <p>{{ 'quality.documents.awaiting-text' | translate: {effective: effective()?.version ?? '—', version: doc.version, approver: doc.approver} }}</p>
+        </div>
+      </div>
+    }
+    @if (signResult() === 'blocked') {
+      <div class="alert alert-danger" role="alert"><div><strong>{{ 'quality.documents.self-approval' | translate: {author: doc.author} }}</strong></div></div>
+    }
+    @if (signResult() === 'approved') {
+      <div class="alert alert-info" role="status"><div><strong>{{ 'quality.documents.approved' | translate: {version: doc.version} }}</strong></div></div>
+    }
+
+    <div class="columns">
+      <section class="card content">
+        <header class="row"><h2>{{ doc.code }} · {{ 'quality.documents.version' | translate }} {{ doc.version }}</h2><span class="spacer"></span>
+          <span class="chip" [class]="toneOf(doc.status)">{{ 'quality.document-status.' + doc.status | translate }}</span></header>
+        <p class="section-title">1. {{ 'quality.documents.purpose' | translate }}</p><p>{{ doc.purpose }}</p>
+        <p class="section-title">2. {{ 'quality.documents.scope' | translate }}</p><p>{{ doc.scope }}</p>
+        <p class="section-title">3. {{ 'quality.documents.procedure' | translate }}</p><p>{{ doc.procedure }}</p>
+        <div class="summary">
+          <p class="section-title">{{ 'quality.documents.revision-summary' | translate }}</p>
+          <p>{{ doc.revisionSummary }} {{ 'quality.documents.author' | translate }}: {{ doc.author }}.</p>
+        </div>
+        @if (doc.status !== 'approved') { <p class="danger">⚠ {{ 'quality.documents.not-operational' | translate }}</p> }
+      </section>
+
+      <aside class="card workflow">
+        <h2>{{ 'quality.documents.workflow' | translate }}</h2>
+        <ol>
+          <li class="done"><strong>{{ 'quality.documents.step-draft' | translate }}</strong><span>{{ doc.author }} · {{ doc.changedAt | date: 'MMM dd' }}</span></li>
+          <li class="done"><strong>{{ 'quality.documents.step-technical' | translate }}</strong><span>{{ doc.technicalReviewer }}</span></li>
+          <li [class.done]="doc.status === 'approved'" [class.current]="doc.status === 'in-review'"><strong>{{ 'quality.documents.step-approval' | translate }}</strong><span>{{ doc.approver }}</span></li>
+          <li [class.done]="doc.status === 'approved'"><strong>{{ 'quality.documents.step-publish' | translate }}</strong><span>{{ 'quality.documents.after-signature' | translate }}</span></li>
+        </ol>
+        @if (isAuthor() && doc.status === 'in-review') {
+          <p class="warning">⚠ {{ 'quality.documents.self-approval' | translate: {author: doc.author} }}</p>
+        }
+        <button type="button" class="btn btn-primary btn-block" (click)="sign()" [disabled]="doc.status !== 'in-review'">{{ 'quality.documents.review-sign' | translate }} →</button>
+      </aside>
+    </div>
+
+    <section class="card">
+      <div class="card-header"><h2>{{ 'quality.documents.history' | translate }}</h2></div>
+      <table class="table">
+        <thead><tr>
+          <th>{{ 'quality.documents.version' | translate }}</th><th>{{ 'quality.documents.changed-by' | translate }}</th>
+          <th>{{ 'quality.documents.date' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th>
+        </tr></thead>
+        <tbody>
+          @for (version of versions(); track version.id) {
+            <tr [class.highlight]="version.id === doc.id">
+              <td><strong>{{ version.version }}</strong></td><td>{{ version.author }}</td>
+              <td>{{ version.changedAt | date: 'MMM dd, yyyy' }}</td>
+              <td><span class="chip" [class]="toneOf(version.status)">{{ 'quality.document-status.' + version.status | translate }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</section>

@@ -1,0 +1,76 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'nav.analytical-results' | translate]"
+    [title]="'nav.analytical-results' | translate"
+    [subtitle]="'quality.results.subtitle' | translate">
+    <select class="picker" (change)="batchCode.set($any($event.target).value); assay.set(null)">
+      @for (code of batches(); track code) { <option [value]="code" [selected]="code === batchCode()">{{ code }}</option> }
+    </select>
+  </app-page-header>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h2>{{ 'quality.results.results' | translate }} · {{ batchCode() }} · {{ manufacturingStore.productByCode(manufacturingStore.batchByCode(batchCode())()?.productCode ?? '')()?.name }}</h2>
+        <p class="small muted">{{ results()[0]?.sampleCode }} · {{ results()[0]?.reportCode }}</p>
+      </div>
+    </div>
+    <table class="table">
+      <thead><tr>
+        <th>{{ 'quality.results.test' | translate }}</th><th>{{ 'quality.results.protocol' | translate }}</th>
+        <th>{{ 'quality.results.calculated' | translate }}</th><th>{{ 'quality.results.specification' | translate }}</th>
+        <th>{{ 'quality.results.analyst' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th>
+      </tr></thead>
+      <tbody>
+        @for (result of results(); track result.id) {
+          <tr [class.highlight]="result.test.startsWith('Assay')">
+            <td><strong>{{ result.test }}</strong></td><td>{{ result.protocol }}</td><td>{{ result.result || '—' }}</td>
+            <td>{{ result.specification }}</td><td>{{ result.analyst || '—' }}</td>
+            <td><span class="chip chip-dot" [class]="result.status === 'within' ? 'chip-success' : result.status === 'oos' ? 'chip-danger' : 'chip-neutral'">{{ 'quality.result-status.' + result.status | translate }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <div class="grid-2">
+    <form class="card panel" [formGroup]="form" (ngSubmit)="calculate()" novalidate>
+      <h2>{{ 'quality.results.calculation' | translate }} · Assay (HPLC)</h2>
+      <p class="small muted">{{ 'quality.results.formula-from' | translate }}</p>
+      @for (input of [['sampleArea', 'As'], ['standardArea', 'Ast'], ['standardConcentration', 'Cst'], ['sampleConcentration', 'Cs'], ['purity', 'P']]; track input[0]) {
+        <label class="input-row" [class.invalid]="form.get(input[0])?.invalid && form.get(input[0])?.touched">
+          <span>{{ 'quality.results.inputs.' + input[0] | translate }} ({{ input[1] }})</span>
+          <input type="number" step="any" [formControlName]="input[0]">
+        </label>
+      }
+      <p class="formula">Assay % = (As / Ast) × (Cst / Cs) × P
+        @if (assay() !== null) { <br>= {{ assay() }} % }
+      </p>
+      @if (assay() !== null) {
+        <span class="chip chip-dot" [class]="assay()! >= 95 && assay()! <= 105 ? 'chip-success' : 'chip-danger'">{{ assay() }} % · {{ 'quality.results.spec-range' | translate }}</span>
+      }
+      <div class="row">
+        <button type="submit" class="btn btn-primary">{{ 'quality.results.calculate' | translate }}</button>
+        <button type="button" class="btn btn-outline" (click)="save()" [disabled]="assay() === null">{{ 'quality.results.save' | translate }}</button>
+      </div>
+    </form>
+
+    <section class="card panel">
+      @if (oos(); as result) {
+        <h2>{{ 'quality.results.oos-title' | translate }} · {{ result.test }}</h2>
+        <p class="small muted">{{ 'quality.results.oos-subtitle' | translate }}</p>
+        <div class="alert alert-danger"><div><p>{{ 'quality.results.oos-text' | translate: {result: result.result, spec: result.specification} }}</p></div></div>
+        <dl>
+          <dt>{{ 'quality.results.batch' | translate }}</dt><dd>{{ batchCode() }} · {{ 'quality.results.quarantine' | translate }}</dd>
+          <dt>{{ 'quality.results.linked-deviation' | translate }}</dt>
+          <dd>@if (linkedDeviation(); as dev) { <a routerLink="/qa/deviations" [queryParams]="{code: dev.code}">{{ dev.code }}</a> } @else { {{ 'quality.results.not-registered' | translate }} }</dd>
+          <dt>{{ 'quality.results.release' | translate }}</dt><dd>{{ 'quality.results.release-blocked' | translate }}</dd>
+        </dl>
+        <button type="button" class="btn btn-primary btn-block" (click)="registerDeviation()" [disabled]="!!linkedDeviation()">{{ 'quality.results.register-deviation' | translate }}</button>
+      } @else {
+        <h2>{{ 'quality.results.no-oos' | translate }}</h2>
+        <p class="muted">{{ 'quality.results.no-oos-text' | translate }}</p>
+      }
+    </section>
+  </div>
+</section>

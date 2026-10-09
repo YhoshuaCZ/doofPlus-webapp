@@ -1,0 +1,79 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'nav.quality-overview' | translate]"
+    [title]="'nav.quality-overview' | translate"
+    [subtitle]="'quality.overview.subtitle' | translate: {name: firstName()}">
+    <a class="btn btn-primary" routerLink="/qa/deviations">+ {{ 'quality.overview.report-deviation' | translate }}</a>
+  </app-page-header>
+
+  <div class="stats">
+    <div class="stat"><p class="stat-label">{{ 'quality.overview.open-deviations' | translate }}</p><p class="stat-value">{{ store.openDeviations().length }}</p>
+      <p class="stat-note danger">{{ 'quality.overview.deviations-note' | translate }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.overview.capa' | translate }}</p><p class="stat-value">{{ store.openActions().length }}</p>
+      <p class="stat-note danger">{{ 'quality.overview.capa-note' | translate }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.overview.audits' | translate }}</p><p class="stat-value">{{ store.audits().length }}</p>
+      <p class="stat-note">{{ 'quality.overview.audits-note' | translate: {count: pendingFindings().length} }}</p></div>
+    <div class="stat"><p class="stat-label">{{ 'quality.overview.release-queue' | translate }}</p><p class="stat-value">{{ releaseQueue().length }}</p>
+      <p class="stat-note danger">{{ 'quality.overview.release-note' | translate: {blocked: blocked().length, ready: releaseQueue().length - blocked().length} }}</p></div>
+  </div>
+
+  @for (batch of blocked(); track batch.id) {
+    <div class="alert">
+      <div><strong>{{ 'quality.overview.blocked' | translate: {code: batch.code} }}</strong><p>{{ batch.incident }}</p></div>
+      <a class="btn btn-warning btn-sm" routerLink="/qa/deviations">{{ 'quality.overview.review' | translate }} →</a>
+    </div>
+  }
+
+  <div class="columns">
+    <div class="stack">
+      <section class="card">
+        <div class="card-header"><h2>{{ 'quality.overview.priority' | translate }}</h2><span class="chip chip-teal">{{ priorityQueue().length }}</span></div>
+        <table class="table">
+          <thead><tr><th>{{ 'quality.tasks.record' | translate }}</th><th>{{ 'quality.overview.activity' | translate }}</th>
+            <th>{{ 'quality.capa.due' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th><th></th></tr></thead>
+          <tbody>
+            @for (task of priorityQueue(); track task.id) {
+              <tr>
+                <td class="code">{{ task.recordCode.split(' ')[0] }}</td>
+                <td>{{ task.title }}</td>
+                <td>{{ task.dueAt | date: 'MMM dd · HH:mm' : 'UTC' }}</td>
+                <td><span class="chip chip-warning">{{ 'quality.task-status.' + task.status | translate }}</span></td>
+                <td><a class="btn btn-primary btn-sm" [routerLink]="linkOf(task.recordCode)">{{ 'quality.overview.open' | translate }} →</a></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="muted">{{ 'quality.overview.no-tasks' | translate }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </section>
+      <section class="card">
+        <div class="card-header"><h2>{{ 'quality.overview.operations' | translate }}</h2></div>
+        <table class="table">
+          <thead><tr><th>{{ 'quality.overview.process' | translate }}</th><th>{{ 'manufacturing.batches.owner' | translate }}</th><th>{{ 'quality.overview.progress' | translate }}</th></tr></thead>
+          <tbody>
+            @for (audit of store.audits(); track audit.id) {
+              <tr><td><strong>{{ audit.title }}</strong><span class="sub">{{ audit.code }}</span></td><td>María México</td>
+                <td>{{ 'quality.overview.findings-closed' | translate: {closed: store.findings().length - pendingFindings().length, total: store.findings().length} }}</td></tr>
+            }
+            @for (plan of store.capaPlans(); track plan.id) {
+              <tr><td><strong>{{ plan.code }}</strong><span class="sub">{{ plan.title }}</span></td><td>{{ plan.owner }}</td>
+                <td>{{ 'quality.capa-status.' + plan.status | translate }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+    <aside class="stack">
+      <section class="card side">
+        <h2>{{ 'quality.overview.decisions' | translate }}</h2>
+        @for (batch of releaseQueue(); track batch.id) {
+          <div class="decision" [class.risk]="batch.status === 'on-hold'">
+            <strong>{{ (batch.status === 'on-hold' ? 'quality.overview.risk-review' : 'quality.overview.release-review') | translate }} · {{ batch.code }}</strong>
+            <span class="small">{{ batch.lastActivity }}</span>
+            <a [routerLink]="batch.status === 'on-hold' ? '/qa/deviations' : '/qa/batch-release'">{{ 'quality.overview.review' | translate }} →</a>
+          </div>
+        }
+      </section>
+    </aside>
+  </div>
+</section>

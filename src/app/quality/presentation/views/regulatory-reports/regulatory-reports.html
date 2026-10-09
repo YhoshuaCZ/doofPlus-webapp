@@ -1,0 +1,60 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'nav.regulatory-reports' | translate]"
+    [title]="'nav.regulatory-reports' | translate"
+    [subtitle]="'quality.reports.subtitle' | translate">
+    <button type="button" class="btn btn-primary" (click)="createReport()">+ {{ 'quality.reports.create' | translate }}</button>
+  </app-page-header>
+
+  <div class="columns">
+    <section class="card">
+      <div class="card-header"><div><h2>{{ 'quality.reports.library' | translate }}</h2>
+        <p class="small muted">{{ 'quality.reports.library-text' | translate: {count: store.reports().length} }}</p></div></div>
+      <table class="table">
+        <thead><tr><th>{{ 'quality.reports.report' | translate }}</th><th>{{ 'quality.reports.scope' | translate }}</th>
+          <th>{{ 'manufacturing.batches.owner' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th></tr></thead>
+        <tbody>
+          @for (report of store.reports(); track report.id) {
+            <tr class="clickable" [class.highlight]="report.code === selectedCode()" (click)="selectedCode.set(report.code)">
+              <td><strong>{{ report.code }}</strong><span class="sub">{{ report.type }}</span></td>
+              <td>{{ report.scope }}</td><td>{{ report.owner }}</td>
+              <td><span class="chip chip-dot" [class]="toneOf(report.status)">{{ 'quality.report-status.' + report.status | translate }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+    @if (selected(); as report) {
+      <section class="card panel">
+        <h2>{{ 'quality.reports.configuration' | translate }}</h2>
+        <p class="label">{{ 'quality.reports.template' | translate }}</p><p>{{ report.template }}</p>
+        <p class="label">{{ 'quality.reports.scope' | translate }}</p><p>{{ report.scope }}</p>
+        <p class="label">{{ 'quality.reports.format' | translate }}</p><p>{{ report.format }}</p>
+        <p class="label">{{ 'manufacturing.batches.owner' | translate }}</p><p>{{ report.owner }}</p>
+        <p class="label">{{ 'quality.reports.created' | translate }}</p><p>{{ report.createdAt | date: 'MMM dd, yyyy' }}</p>
+      </section>
+    }
+  </div>
+
+  @if (selected(); as report) {
+    <div class="columns">
+      <section class="card panel">
+        <div class="row"><h2>{{ report.type }} · {{ report.code }}</h2><span class="spacer"></span>
+          <span class="chip chip-dot" [class]="toneOf(report.status)">{{ 'quality.report-status.' + report.status | translate }}</span></div>
+        <p class="small muted">{{ 'quality.reports.dossier-text' | translate }}</p>
+        @for (item of dossier(); track item.key) {
+          <div class="dossier-item">
+            <div><strong>{{ 'quality.reports.dossier.' + item.key | translate }}</strong></div>
+            <span class="chip chip-dot" [class]="item.state === 'linked' || item.state === 'approved' ? 'chip-success' : item.tone">{{ 'quality.reports.dossier-state.' + item.state | translate }}</span>
+          </div>
+        }
+      </section>
+      <section class="card panel">
+        <h2>{{ 'quality.reports.review' | translate }}</h2>
+        <strong>{{ 'quality.reports.completeness' | translate }}</strong><p class="small muted">{{ 'quality.reports.completeness-text' | translate }}</p>
+        <strong>{{ 'quality.reports.no-certification' | translate }}</strong><p class="small muted">{{ 'quality.reports.no-certification-text' | translate }}</p>
+        <strong>{{ 'quality.reports.permissions' | translate }}</strong><p class="small muted">{{ 'quality.reports.permissions-text' | translate }}</p>
+      </section>
+    </div>
+  }
+</section>

@@ -1,0 +1,101 @@
+<section class="page">
+  @if (plan(); as capa) {
+    <app-page-header
+      [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'quality.capa.title' | translate]"
+      [title]="'quality.capa.title' | translate"
+      [subtitle]="capa.code + ' · ' + capa.title + ' · ' + ('quality.capa.source' | translate) + ' ' + capa.sourceDeviation">
+      <div class="route">
+        <button type="button" class="btn btn-primary" (click)="route()" [disabled]="capa.status === 'in-approval'">{{ 'quality.capa.route' | translate }}</button>
+        <span class="small muted">{{ 'quality.capa.no-self-approve' | translate }}</span>
+      </div>
+    </app-page-header>
+
+    <div class="alert alert-info">
+      <div><strong>{{ 'quality.capa.effectiveness' | translate }}</strong><p>{{ capa.acceptanceCriterion }}</p></div>
+    </div>
+    @if (rejection(); as reasons) {
+      @if (reasons.length) {
+        <div class="alert alert-danger" role="alert">
+          <div>
+            <strong>{{ 'quality.capa.cannot-route' | translate }}</strong>
+            @for (reason of reasons; track reason) { <p>• {{ 'quality.capa.rejected.' + reason | translate }}</p> }
+          </div>
+        </div>
+      } @else {
+        <div class="alert alert-info" role="status"><div><strong>{{ 'quality.capa.routed' | translate: {reviewer: capa.reviewer} }}</strong></div></div>
+      }
+    }
+
+    <div class="columns">
+      <div class="stack">
+        <section class="card">
+          <div class="card-header">
+            <h2>{{ 'quality.capa.actions' | translate }}</h2>
+            <span class="chip chip-teal">{{ 'quality.capa.attached' | translate: {count: attached(), total: actions().length} }}</span>
+          </div>
+          <table class="table">
+            <thead><tr>
+              <th>{{ 'quality.capa.action' | translate }}</th><th>{{ 'manufacturing.batches.owner' | translate }}</th>
+              <th>{{ 'quality.capa.due' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th><th>{{ 'quality.capa.evidence' | translate }}</th>
+            </tr></thead>
+            <tbody>
+              @for (action of actions(); track action.id) {
+                <tr>
+                  <td><span class="code">{{ action.code }}</span><span class="sub">{{ action.title }}</span></td>
+                  <td>{{ action.owner }}</td>
+                  <td>{{ action.dueAt | date: 'MMM dd' }}</td>
+                  <td><span class="chip" [class]="toneOf(action.status)">{{ 'quality.action-status.' + action.status | translate }}</span></td>
+                  <td>
+                    @if (action.evidenceAttached) {
+                      <span class="chip chip-success">✓ {{ action.evidence }}</span>
+                    } @else {
+                      <button type="button" class="btn btn-outline btn-sm" (click)="store.attachActionEvidence(action)">{{ 'quality.capa.attach' | translate }} ↑</button>
+                      <span class="sub">{{ action.evidence }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <div class="card-body add">
+            <input type="text" [formControl]="newAction" [placeholder]="'quality.capa.new-action' | translate">
+            <button type="button" class="btn btn-outline btn-sm" (click)="addAction()">+ {{ 'quality.capa.add-action' | translate }}</button>
+          </div>
+        </section>
+
+        <section class="card panel">
+          <h2>{{ 'quality.capa.root-cause-analysis' | translate }}</h2>
+          <label class="field" [class.invalid]="rejection()?.includes('root-cause-required')">
+            <span>{{ 'quality.capa.root-cause' | translate }} *</span>
+            <textarea rows="3" [formControl]="rootCause"></textarea>
+          </label>
+          <button type="button" class="btn btn-outline btn-sm save" (click)="saveRootCause()" [disabled]="rootCause.pristine">{{ 'quality.capa.save-root-cause' | translate }}</button>
+          <div class="box teal"><strong>{{ 'quality.capa.check' | translate }} · {{ capa.effectivenessCheckAt | date: 'MMM dd' }}</strong><p>{{ 'quality.capa.check-text' | translate: {reviewer: capa.reviewer} }}</p></div>
+          <div class="box orange"><strong>{{ 'quality.capa.closure-gate' | translate }}</strong><p>{{ 'quality.capa.closure-text' | translate }}</p></div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card panel">
+          <h2>{{ 'quality.capa.accountability' | translate }}</h2>
+          <p class="label">{{ 'quality.capa.owner' | translate }}</p><p><strong>{{ capa.owner }}</strong></p>
+          <p class="label">{{ 'quality.capa.risk' | translate }}</p>
+          @if (deviation(); as dev) {
+            <p><span class="chip chip-danger">{{ 'quality.classification.' + dev.classification | translate }} · RPN {{ dev.severity * dev.likelihood * dev.detectability }}</span></p>
+          }
+          <p class="label">{{ 'quality.capa.reviewer' | translate }}</p><p><strong>{{ capa.reviewer }}</strong></p>
+          <p class="label">{{ 'monitoring.status' | translate }}</p><p>{{ 'quality.capa-status.' + capa.status | translate }}</p>
+        </section>
+        <section class="card panel">
+          <h2>{{ 'quality.capa.required-evidence' | translate }}</h2>
+          <p class="small muted">{{ 'quality.capa.required-text' | translate }}</p>
+          @for (action of actions(); track action.id) {
+            <div class="evidence-item"><span>{{ action.evidence }}</span>
+              <span class="chip" [class]="action.evidenceAttached ? 'chip-success' : 'chip-neutral'">{{ (action.evidenceAttached ? 'quality.capa.uploaded' : 'quality.capa.pending') | translate }}</span></div>
+          }
+          <p class="small muted box">{{ 'quality.capa.uploaded-count' | translate: {count: attached(), total: actions().length} }}</p>
+        </section>
+      </aside>
+    </div>
+  }
+</section>

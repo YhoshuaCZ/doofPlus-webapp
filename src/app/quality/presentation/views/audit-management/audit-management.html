@@ -1,0 +1,83 @@
+<section class="page">
+  @if (audit(); as current) {
+    <app-page-header
+      [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'quality.audits.title' | translate]"
+      [title]="'quality.audits.title' | translate"
+      [subtitle]="current.code + ' · ' + current.title + ' · ' + current.period">
+      <button type="button" class="btn btn-primary" (click)="adding.set(!adding())">+ {{ 'quality.audits.add' | translate }}</button>
+    </app-page-header>
+
+    <div class="stats">
+      <div class="stat"><p class="stat-label">{{ 'quality.audits.findings' | translate }}</p><p class="stat-value">{{ findings().length }}</p></div>
+      <div class="stat"><p class="stat-label">{{ 'quality.audits.closed' | translate }}</p><p class="stat-value">{{ closedCount() }}</p></div>
+      <div class="stat"><p class="stat-label">{{ 'quality.audits.pending' | translate }}</p><p class="stat-value warn">{{ findings().length - closedCount() }}</p></div>
+      <div class="stat"><p class="stat-label">{{ 'quality.audits.progress' | translate }}</p>
+        <p class="stat-value teal">{{ current.areasReviewed * 100 / current.areasTotal }}%</p>
+        <p class="stat-note">{{ 'quality.audits.areas' | translate: {done: current.areasReviewed, total: current.areasTotal} }}</p></div>
+    </div>
+
+    @if (adding()) {
+      <form class="card panel" [formGroup]="form" (ngSubmit)="addFinding()" novalidate>
+        <h2>{{ 'quality.audits.add' | translate }}</h2>
+        <div class="form-grid">
+          <label class="field" [class.invalid]="form.controls.title.invalid && form.controls.title.touched"><span>{{ 'quality.audits.finding' | translate }} *</span><input type="text" formControlName="title"></label>
+          <label class="field"><span>{{ 'quality.audits.class' | translate }} *</span>
+            <select formControlName="classification"><option value="minor">{{ 'quality.classification.minor' | translate }}</option><option value="major">{{ 'quality.classification.major' | translate }}</option></select></label>
+          <label class="field" [class.invalid]="form.controls.owner.invalid && form.controls.owner.touched"><span>{{ 'manufacturing.batches.owner' | translate }} *</span><input type="text" formControlName="owner"></label>
+          <label class="field full" [class.invalid]="form.controls.observation.invalid && form.controls.observation.touched"><span>{{ 'quality.audits.observation' | translate }} *</span><textarea rows="2" formControlName="observation"></textarea></label>
+        </div>
+        <div class="row"><button type="submit" class="btn btn-primary">{{ 'quality.audits.save' | translate }}</button>
+          <button type="button" class="btn" (click)="adding.set(false)">{{ 'subscriptions.cancel' | translate }}</button></div>
+      </form>
+    }
+
+    <div class="columns">
+      <div class="stack">
+        <section class="card">
+          <div class="card-header"><h2>{{ 'quality.audits.register' | translate }}</h2></div>
+          <table class="table">
+            <thead><tr><th>{{ 'quality.audits.finding' | translate }}</th><th>{{ 'quality.audits.class' | translate }}</th>
+              <th>{{ 'quality.audits.owner-due' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th></tr></thead>
+            <tbody>
+              @for (finding of findings(); track finding.id) {
+                <tr class="clickable" [class.highlight]="finding.code === selectedCode()" (click)="selectedCode.set(finding.code)">
+                  <td><span class="code">{{ finding.code }}</span> · {{ finding.title }}</td>
+                  <td><span class="chip" [class]="finding.classification === 'major' ? 'chip-danger' : 'chip-info'">{{ 'quality.classification.' + finding.classification | translate }}</span></td>
+                  <td>{{ finding.owner }} · {{ finding.dueAt | date: 'MMM dd' }}</td>
+                  <td><span class="chip" [class]="toneOf(finding.status)">{{ 'quality.finding-status.' + finding.status | translate }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+        @if (selected(); as finding) {
+          <section class="card panel">
+            <div class="selected-head"><strong>{{ 'quality.audits.selected' | translate }} · {{ finding.code }} · {{ finding.title }}</strong>
+              <span class="chip" [class]="finding.classification === 'major' ? 'chip-danger' : 'chip-info'">{{ 'quality.classification.' + finding.classification | translate }}</span></div>
+            <p class="label">{{ 'quality.audits.observation' | translate }}</p><p>{{ finding.observation }}</p>
+            <p class="label">{{ 'quality.audits.response' | translate }}</p><p>{{ finding.response || '—' }}</p>
+            <p class="label">{{ 'quality.audits.closure' | translate }}</p><p>{{ finding.closureRequirement }}</p>
+          </section>
+        }
+      </div>
+      <aside class="stack">
+        <section class="card panel">
+          <h2>{{ 'quality.audits.plan' | translate }}</h2>
+          <ol class="plan">
+            <li class="done"><strong>{{ 'quality.audits.plan-opening' | translate }}</strong></li>
+            <li class="current"><strong>{{ 'quality.audits.plan-evidence' | translate }}</strong></li>
+            <li><strong>{{ 'quality.audits.plan-closing' | translate }}</strong></li>
+            <li><strong>{{ 'quality.audits.plan-report' | translate }}</strong></li>
+          </ol>
+        </section>
+        <section class="card panel">
+          <h2>{{ 'quality.audits.package' | translate }}</h2>
+          @for (item of evidence(); track item.id) {
+            <div class="file"><span class="type">{{ item.fileName.split('.').pop()?.toUpperCase() }}</span>
+              <div><strong>{{ item.fileName }}</strong><span class="small muted">{{ item.detail }}</span></div></div>
+          }
+        </section>
+      </aside>
+    </div>
+  }
+</section>

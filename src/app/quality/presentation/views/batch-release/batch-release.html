@@ -1,0 +1,76 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.qa.short' | translate, 'nav.batch-release' | translate]"
+    [title]="'nav.batch-release' | translate"
+    [subtitle]="batch() ? batch()!.code + ' · ' + (manufacturingStore.productByCode(batch()!.productCode)()?.name ?? '') + ' · ' + (batch()!.quantity | number) + ' ' + ('manufacturing.units' | translate) : ''">
+    <select class="picker" (change)="select($any($event.target).value)">
+      @for (item of queue(); track item.id) {
+        <option [value]="item.code" [selected]="item.code === code()">{{ item.code }} · {{ 'manufacturing.batch-status.' + item.status | translate }}</option>
+      }
+    </select>
+  </app-page-header>
+
+  @if (batch()?.status === 'released') {
+    <div class="alert alert-info"><div><strong>✓ {{ 'quality.release.released' | translate: {code: code()} }}</strong></div></div>
+  } @else if (ready()) {
+    <div class="alert alert-info"><div><strong>✓ {{ 'quality.release.ready' | translate }}</strong><p>{{ 'quality.release.ready-text' | translate }}</p></div></div>
+  } @else {
+    <div class="alert alert-danger"><div><strong>{{ 'quality.release.blocked' | translate: {code: code()} }}</strong><p>{{ 'quality.release.blocked-text' | translate }}</p></div></div>
+  }
+
+  <div class="columns">
+    <section class="card">
+      <div class="card-header">
+        <h2>{{ 'quality.release.readiness' | translate }}</h2>
+        <span class="chip" [class]="ready() ? 'chip-teal' : 'chip-danger'">{{ 'quality.release.passed' | translate: {passed: passed(), total: checks().length} }}</span>
+      </div>
+      <table class="table">
+        <thead><tr><th>#</th><th>{{ 'quality.release.check' | translate }}</th><th>{{ 'quality.capa.evidence' | translate }}</th><th>{{ 'monitoring.status' | translate }}</th></tr></thead>
+        <tbody>
+          @for (check of checks(); track check.key; let i = $index) {
+            <tr [class.failed]="!check.passed">
+              <td>{{ i + 1 }}</td>
+              <td><strong>{{ 'quality.release.checks.' + check.key | translate }}</strong><span class="sub">{{ 'quality.release.checks.' + check.key + '-text' | translate }}</span></td>
+              <td class="code">{{ check.evidence }}</td>
+              <td><span class="chip" [class]="check.passed ? 'chip-success' : 'chip-danger'">{{ (check.passed ? 'quality.release.check-passed' : 'quality.release.check-failed') | translate }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <aside class="stack">
+      <section class="card panel">
+        <h2>{{ 'quality.release.sign' | translate }}</h2>
+        <div class="approver">
+          <p class="small strong teal">{{ 'quality.release.authenticated' | translate }}</p>
+          <p><strong>{{ iamStore.currentUser()?.fullName }}</strong></p>
+          <p class="small teal">{{ 'privileges.' + iamStore.currentUser()?.privilege | translate }} · {{ iamStore.currentUser()?.plant }}</p>
+        </div>
+        <label class="field">
+          <span>{{ 'quality.release.meaning' | translate }} *</span>
+          <input type="text" [value]="'quality.release.meaning-value' | translate" disabled>
+          <small class="muted">{{ 'quality.release.meaning-fixed' | translate }}</small>
+        </label>
+        <label class="field" [class.invalid]="(password.invalid && password.touched) || result() === 'invalid-password'">
+          <span>{{ 'quality.release.password' | translate }} *</span>
+          <input type="password" [formControl]="password" autocomplete="current-password">
+          @if (result() === 'invalid-password') { <small class="field-error">{{ 'quality.release.wrong-password' | translate }}</small> }
+        </label>
+        <p class="small muted">{{ 'quality.release.record' | translate }}: <strong>{{ code() }} · {{ 'quality.release.release-record' | translate }}</strong></p>
+        @if (!canSign()) { <p class="field-error">{{ 'quality.release.no-privilege' | translate }}</p> }
+        <button type="button" class="btn btn-primary btn-block" (click)="sign()" [disabled]="!ready() || !canSign() || batch()?.status === 'released'">
+          {{ 'quality.release.sign-button' | translate }}
+        </button>
+        <p class="small muted">{{ 'quality.release.sign-note' | translate }}</p>
+      </section>
+      <section class="card panel">
+        <h2>{{ 'quality.release.context' | translate }}</h2>
+        <p class="label">{{ 'quality.release.approver-privilege' | translate }}</p>
+        <p class="small muted">{{ 'quality.release.approver-text' | translate }}</p>
+        <p class="label">{{ 'quality.release.attribution' | translate }}</p>
+        <p class="small muted">{{ 'quality.release.attribution-text' | translate }}</p>
+      </section>
+    </aside>
+  </div>
+</section>
