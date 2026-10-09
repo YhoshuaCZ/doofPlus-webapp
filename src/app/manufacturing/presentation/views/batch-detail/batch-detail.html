@@ -4,6 +4,7 @@
     [title]="'manufacturing.detail.title' | translate"
     [subtitle]="code() + ' · ' + (product()?.name ?? '') + ' · ' + ('manufacturing.detail.subtitle' | translate)">
     <a class="btn btn-outline" routerLink="/production/batches">← {{ 'nav.batches' | translate }}</a>
+    <a class="btn btn-primary" [routerLink]="['/production/batches', code(), 'iot']">{{ 'manufacturing.detail.iot-evidence' | translate }}</a>
   </app-page-header>
 
   @if (batch(); as current) {

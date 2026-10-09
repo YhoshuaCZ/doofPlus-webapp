@@ -1,0 +1,115 @@
+<section class="page">
+  <app-page-header
+    [breadcrumb]="['shell.workspace' | translate, 'environments.production.short' | translate, 'nav.production-overview' | translate]"
+    [title]="'nav.production-overview' | translate"
+    [subtitle]="'manufacturing.overview.subtitle' | translate: {name: firstName()}">
+    <a class="btn btn-primary" routerLink="/production/batches">+ {{ 'manufacturing.overview.create-order' | translate }}</a>
+  </app-page-header>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-label">{{ 'manufacturing.overview.orders' | translate }}</p>
+      <p class="stat-value">{{ store.orders().length }}</p>
+      <p class="stat-note">{{ 'manufacturing.overview.orders-note' | translate: {running: (store.batchCounts()['in-progress'] ?? 0), held: (store.batchCounts()['on-hold'] ?? 0)} }}</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">{{ 'manufacturing.overview.output' | translate }}</p>
+      <p class="stat-value">{{ output() | number }}</p>
+      <p class="stat-note">{{ 'manufacturing.overview.output-note' | translate }}</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">{{ 'manufacturing.overview.batches' | translate }}</p>
+      <p class="stat-value">{{ (store.batchCounts()['in-progress'] ?? 0) + (store.batchCounts()['on-hold'] ?? 0) }}</p>
+      <p class="stat-note">{{ 'manufacturing.overview.batches-note' | translate }}</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">{{ 'manufacturing.overview.incidents' | translate }}</p>
+      <p class="stat-value">{{ monitoringStore.activeAlerts().length }}</p>
+      <p class="stat-note">{{ 'manufacturing.overview.incidents-note' | translate }}</p>
+    </div>
+  </div>
+
+  @if (heldBatch(); as held) {
+    <div class="alert alert-danger">
+      <div><strong>ⓘ {{ held.line }} · {{ held.code }} · {{ held.incident }}</strong></div>
+      <a class="btn btn-outline btn-sm" [routerLink]="['/production/batches', held.code, 'iot']">{{ 'manufacturing.overview.view-evidence' | translate }}</a>
+    </div>
+  }
+
+  <div class="columns">
+    <div class="stack">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>{{ 'manufacturing.overview.schedule' | translate }}</h2>
+            <p class="small muted">{{ 'manufacturing.overview.schedule-text' | translate }}</p>
+          </div>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ 'manufacturing.orders.order' | translate }}</th>
+              <th>{{ 'manufacturing.products.product' | translate }}</th>
+              <th>{{ 'manufacturing.batches.line' | translate }}</th>
+              <th>{{ 'manufacturing.orders.progress' | translate }}</th>
+              <th>{{ 'manufacturing.products.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of schedule(); track row.order.id) {
+              <tr [class.highlight]="row.batch?.status === 'on-hold'">
+                <td><a [routerLink]="['/production/orders', row.order.code]">{{ row.order.code }}</a><span class="sub">{{ row.order.batchCode }}</span></td>
+                <td>{{ row.product?.name }}</td>
+                <td>{{ row.order.line }}</td>
+                <td>{{ row.batch?.progress ?? 0 }} %</td>
+                <td><span class="chip chip-dot" [class]="toneOf(row.batch?.status)">{{ 'manufacturing.batch-status.' + (row.batch?.status ?? 'planned') | translate }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><h2>{{ 'manufacturing.overview.readiness' | translate }}</h2></div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ 'manufacturing.overview.resource' | translate }}</th>
+              <th>{{ 'manufacturing.overview.availability' | translate }}</th>
+              <th>{{ 'manufacturing.overview.assignment' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of readiness(); track item.code) {
+              <tr>
+                <td><strong>{{ item.code }}</strong></td>
+                <td><span class="chip chip-dot" [class]="item.tone">{{ item.label | translate }}</span></td>
+                <td>{{ item.assignment }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <aside class="stack">
+      <section class="card side">
+        <h2>{{ 'manufacturing.overview.priorities' | translate }}</h2>
+        <p class="small muted">{{ 'manufacturing.overview.priorities-text' | translate }}</p>
+        @for (alert of monitoringStore.activeAlerts(); track alert.id) {
+          <a class="incident" [routerLink]="['/production/sensors', alert.sensorCode]">
+            <strong>{{ alert.code }} · {{ alert.title }}</strong>
+            <span class="small muted">{{ alert.sensorCode }} · {{ alert.equipmentCode }} {{ alert.linkedRecord ? '· ' + alert.linkedRecord : '' }}</span>
+            <span class="chip chip-dot" [class]="alert.severity === 'critical' ? 'chip-warning' : 'chip-neutral'">{{ 'monitoring.alert-status.' + alert.status | translate }}</span>
+          </a>
+        }
+      </section>
+      <section class="card side">
+        <h2>{{ 'manufacturing.overview.handover' | translate }}</h2>
+        <div><strong>{{ 'manufacturing.overview.handover-1' | translate }}</strong><p class="small muted">{{ 'manufacturing.overview.handover-1-text' | translate }}</p></div>
+        <div><strong>{{ 'manufacturing.overview.handover-2' | translate }}</strong><p class="small muted">{{ 'manufacturing.overview.handover-2-text' | translate }}</p></div>
+        <div><strong>{{ 'manufacturing.overview.handover-3' | translate }}</strong><p class="small muted">{{ 'manufacturing.overview.handover-3-text' | translate }}</p></div>
+      </section>
+    </aside>
+  </div>
+</section>
